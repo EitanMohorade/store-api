@@ -5,8 +5,12 @@ controlador de stock (productos, categorías y stock).
 
 **Estado:** scaffold inicial (controladores, servicios, entidades de ejemplo).
 
-**Requisitos**
+**Stack técnico**
 - Java 17+
+- Spring Boot
+- PostgreSQL (base de datos)
+
+**Requisitos**
 - Maven (recomendado) o Docker (alternativa sin instalar Maven)
 
 **Inicio rápido**
@@ -26,7 +30,7 @@ controlador de stock (productos, categorías y stock).
 **Estructura principal**
 
 ```
-src/main/java/com/store_api
+src/main/java/com/store/api
 ├── StoreApiApplication.java
 ├── controller/    # endpoints REST (Producto, Categoria, Stock)
 ├── service/       # lógica de negocio

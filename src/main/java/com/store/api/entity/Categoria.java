@@ -1,12 +1,12 @@
-package com.store_api.entity;
+package com.store.api.entity;
 
-public class Producto {
+public class Categoria {
     private Long id;
     private String nombre;
 
-    public Producto() {}
+    public Categoria() {}
 
-    public Producto(Long id, String nombre) {
+    public Categoria(Long id, String nombre) {
         this.id = id;
         this.nombre = nombre;
     }

@@ -1,4 +1,4 @@
-package com.store_api.controller;
+package com.store.api.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

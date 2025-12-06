@@ -1,4 +1,4 @@
-package com.store_api.service;
+package com.store.api.service;
 
 import org.springframework.stereotype.Service;
 

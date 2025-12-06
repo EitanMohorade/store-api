@@ -1,4 +1,4 @@
-package com.store_api.entity;
+package com.store.api.entity;
 
 public class Stock {
     private Long id;
