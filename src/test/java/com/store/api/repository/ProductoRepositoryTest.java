@@ -11,6 +11,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
+/**
+ * Suite de tests para ProductoRepository.
+ * 
+ * Valida las operaciones CRUD (Create, Read, Update, Delete) y comportamientos
+ * específicos de la entidad Producto en la base de datos H2 de prueba.
+ * 
+ * Los tests cubren:
+ * - Creación de productos con y sin relaciones (Categoría, Compañía)
+ * - Lectura/recuperación de productos por ID
+ * - Actualización de atributos de productos
+ * - Eliminación de productos
+ * - Búsqueda de productos por categoría
+ * - Validación de valores límite (stock cero, precios negativos)
+ * 
+ */
 @DataJpaTest
 class ProductoRepositoryTest {
 
@@ -20,6 +35,10 @@ class ProductoRepositoryTest {
     @Autowired
     private ProductoRepository productoRepository;
 
+    /**
+     * Verifica que se pueda crear y recuperar una cartera con todos sus atributos
+     * (categoría, compañía, descripción, precio e imagen).
+     */
     @Test
     void debeCrearCarteraConCategoriaCompaniaDescripcionPrecioEImagen() {
         Categoria cat = new Categoria();
@@ -50,6 +69,9 @@ class ProductoRepositoryTest {
         assertEquals("2145", encontrado.getArticulo());
     }
 
+    /**
+     * Verifica que se pueda eliminar una bandolera del repositorio correctamente.
+     */
     @Test
     void debeEliminarBandelaDelRepositorio() {
         Producto bandela = new Producto();
@@ -66,6 +88,9 @@ class ProductoRepositoryTest {
         assertFalse(productoRepository.findById(id).isPresent());
     }
 
+    /**
+     * Verifica que se pueda crear una mochila con stock y recuperarlo correctamente.
+     */
     @Test
     void debeCrearMochilaConeStockCorrecto() {
         Producto mochila = new Producto();
@@ -80,6 +105,9 @@ class ProductoRepositoryTest {
         assertEquals(150, guardado.getStock());
     }
 
+    /**
+     * Verifica que se pueda crear una cartera usando el constructor completo.
+     */
     @Test
     void debeCrearCarteraConConstructorCompleto() {
         Categoria cat = new Categoria();
@@ -104,6 +132,9 @@ class ProductoRepositoryTest {
         assertEquals("Carteras Deportivas", guardado.getCategoria().getNombre());
     }
 
+    /**
+     * Verifica que se puedan actualizar los atributos de una bandolera existente.
+     */
     @Test
     void debeActualizarBandelaExistente() {
         Producto bandela = new Producto();
@@ -125,6 +156,9 @@ class ProductoRepositoryTest {
         assertEquals(50, actualizado.getStock());
     }
 
+    /**
+     * Verifica que se puedan encontrar todas las mochilas que pertenecen a una categoría específica.
+     */
     @Test
     void debeEncontrarMochilasDeCategoria() {
         Categoria cat = new Categoria();
@@ -155,6 +189,9 @@ class ProductoRepositoryTest {
         assertEquals(2, countMochilas);
     }
 
+    /**
+     * Verifica que se pueda crear una bandolera sin categoría asignada.
+     */
     @Test
     void debeCrearBandelaSinCategoria() {
         Producto bandela = new Producto();
@@ -169,6 +206,9 @@ class ProductoRepositoryTest {
         assertEquals("924", guardado.getArticulo());
     }
 
+    /**
+     * Verifica que se pueda crear una mochila sin compañía asignada.
+     */
     @Test
     void debeCrearMochilaSinCompania() {
         Producto mochila = new Producto();
@@ -183,6 +223,9 @@ class ProductoRepositoryTest {
         assertEquals("9211", guardado.getArticulo());
     }
 
+    /**
+     * Verifica que se puedan obtener todos los atributos de una cartera recuperada de la base de datos.
+     */
     @Test
     void debeObtenerTodosLosDatosDeCartera() {
         Categoria cat = new Categoria();
@@ -218,6 +261,9 @@ class ProductoRepositoryTest {
         assertNotNull(encontrado.getCompania());
     }
 
+    /**
+     * Verifica que se puedan encontrar múltiples tipos de productos (mochilas, bandoleras, carteras).
+     */
     @Test
     void debeEncontrarVariosTiposDeProductos() {
         Producto mochila = new Producto();
@@ -239,6 +285,9 @@ class ProductoRepositoryTest {
         assertTrue(todos.size() >= 3);
     }
 
+    /**
+     * Verifica que se pueda eliminar una bandolera por su ID.
+     */
     @Test
     void debeEliminarBandelarPorId() {
         Producto bandela = new Producto();
@@ -255,6 +304,9 @@ class ProductoRepositoryTest {
         assertFalse(productoRepository.findById(id).isPresent());
     }
 
+    /**
+     * Verifica que se permita crear una mochila con stock en cero.
+     */
     @Test
     void debePermitirMochilaConStockCero() {
         Producto mochila = new Producto();
@@ -267,6 +319,9 @@ class ProductoRepositoryTest {
         assertEquals(0, guardado.getStock());
     }
 
+    /**
+     * Verifica que se permita crear una cartera con precio negativo (descuento).
+     */
     @Test
     void debePermitirCarteraConPrecioNegativo() {
         Producto cartera = new Producto();
