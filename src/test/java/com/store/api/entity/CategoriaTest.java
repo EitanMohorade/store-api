@@ -5,63 +5,66 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test unitario para la entidad Categoria.
+ * Suite de tests unitarios para la entidad Categoria.
  * 
- * Verifica la construcción, getters y setters de la clase Categoria.
+ * Valida la construcción, getters, setters y comportamiento general de la clase Categoria,
+ * incluyendo inicialización con y sin parámetros, y manipulación de atributos.
+ * 
  */
 public class CategoriaTest {
 
+    /**
+     * Verifica que se pueda crear una instancia de Categoria con el constructor vacío.
+     */
     @Test
     public void testConstructorVacio() {
-        // Arrange & Act
         Categoria categoria = new Categoria();
 
-        // Assert
         assertNotNull(categoria, "La instancia no debe ser nula");
     }
 
+    /**
+     * Verifica que el constructor con parámetros inicialice correctamente los atributos.
+     */
     @Test
     public void testConstructorConParametros() {
-        // Arrange
         Long id = 1L;
         String nombre = "bolsos";
         String descripcion = "accesorios de moda";
 
-        // Act
         Categoria categoria = new Categoria(id, nombre, descripcion);
 
-        // Assert
         assertEquals(id, categoria.getId(), "El ID debe coincidir");
         assertEquals(nombre, categoria.getNombre(), "El nombre debe coincidir");
         assertEquals(descripcion, categoria.getDescripcion(), "La descripción debe coincidir");
     }
 
+    /**
+     * Verifica que los setters y getters funcionan correctamente.
+     */
     @Test
     public void testSettersYGetters() {
-        // Arrange
         Categoria categoria = new Categoria();
         String nombre = "bandoleras";
         String descripcion = "bolsos pequeños";
 
-        // Act
         categoria.setNombre(nombre);
         categoria.setDescripcion(descripcion);
 
-        // Assert
         assertEquals(nombre, categoria.getNombre(), "El nombre debe actualizarse");
         assertEquals(descripcion, categoria.getDescripcion(), "La descripción debe actualizarse");
     }
 
+    /**
+     * Verifica que el ID pueda ser establecido y recuperado correctamente.
+     */
     @Test
     public void testSetId() {
-        // Arrange
         Categoria categoria = new Categoria();
         Long id = 5L;
 
-        // Act
         categoria.setId(id);
 
-        // Assert
         assertEquals(id, categoria.getId(), "El ID debe actualizarse");
     }
 }
