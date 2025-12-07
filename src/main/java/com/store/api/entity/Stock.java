@@ -1,8 +1,24 @@
 package com.store.api.entity;
 
+import jakarta.persistence.*;
+
+/**
+ * Entidad que representa el stock (cantidad en inventario) de un producto.
+ * 
+ * Mantiene registro de la cantidad disponible de cada producto en el sistema.
+ */
+@Entity
 public class Stock {
+
+    /** Identificador único del registro de stock. */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /** ID del producto asociado a este stock. */
     private Long productoId;
+    
+    /** Cantidad disponible en inventario. */
     private Integer cantidad;
 
     public Stock() {}

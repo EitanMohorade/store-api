@@ -1,0 +1,40 @@
+package com.store.api.entity;
+
+import jakarta.persistence.*;
+
+/**
+ * Entidad que representa un usuario administrador del sistema.
+ * 
+ * Los administradores tienen acceso para modificar, eliminar y gestionar todo en la aplicación.
+ */
+@Entity
+public class Admin {
+
+    /** Identificador único del administrador. */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    /** Nombre de usuario del administrador. */
+    private String nombre;
+    
+    /** Contraseña encriptada del administrador. */
+    private String password;
+
+    public Admin() {}
+
+    public Admin(Long id, String nombre, String password) {
+        this.id = id;
+        this.nombre = nombre;
+        this.password = password;
+    }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+}

@@ -1,8 +1,25 @@
 package com.store.api.entity;
 
+import jakarta.persistence.*;
+
+/**
+ * Entidad que representa una categoría de productos.
+ * 
+ * Las categorías agrupan productos relacionados para facilitar la organización
+ * y búsqueda en el sistema de inventario.
+ */
+@Entity
 public class Categoria {
+
+    /** Identificador único de la categoría. */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+    /** Nombre de la categoría. */
     private String nombre;
+    
+    /** Descripción de la categoría. */
     private String descripcion;
 
     public Categoria() {}
