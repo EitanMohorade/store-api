@@ -1,5 +1,9 @@
 package com.store.api.repository;
 
-// Placeholder repository interface - replace with Spring Data JPA as needed
-public interface ProductoRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.store.api.entity.Producto;
+
+public interface ProductoRepository extends JpaRepository<Producto, Long> {
 }
+

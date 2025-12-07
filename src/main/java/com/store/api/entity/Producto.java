@@ -29,9 +29,8 @@ public class Producto {
     @ManyToOne
     private Categoria categoria;
 
-    /** Stock asociado al producto. */
-    @OneToOne(cascade = CascadeType.ALL)
-    private Stock stock;
+    /** Stock del producto. */
+    private int stock;
 
     /** URL de la imagen del producto. */
     private String imagenUrl;
@@ -43,7 +42,7 @@ public class Producto {
     public Producto() {}
 
     public Producto(Long id, String articulo, String descripcion, int precio, Categoria categoria,
-                    Stock stock, String imagenUrl, Compania compania) {
+                    int stock, String imagenUrl, Compania compania) {
         this.id = id;
         this.articulo = articulo;
         this.descripcion = descripcion;
@@ -69,8 +68,8 @@ public class Producto {
     public Categoria getCategoria() { return categoria; }
     public void setCategoria(Categoria categoria) { this.categoria = categoria; }
 
-    public Stock getStock() { return stock; }
-    public void setStock(Stock stock) { this.stock = stock; }
+    public int getStock() { return stock; }
+    public void setStock(int stock) { this.stock = stock; }
 
     public String getImagenUrl() { return imagenUrl; }
     public void setImagenUrl(String imagenUrl) { this.imagenUrl = imagenUrl; }
