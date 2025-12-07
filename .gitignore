@@ -4,6 +4,10 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Spring config ###
+src/main/resources/application.properties
+src/main/resources/application.yml
+
 ### STS ###
 .apt_generated
 .classpath
