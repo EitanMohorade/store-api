@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.dao.DataIntegrityViolationException;
 
 /**
  * Suite de tests para AdminRepository.
@@ -135,6 +136,34 @@ public class AdminRepositoryTest {
         assertNotNull(encontrado);
         assertEquals("AdminCompleto", encontrado.getNombre());
         assertEquals("completo@123", encontrado.getPassword());
+    }
+
+    /**
+     * Verifica que no se pueda crear un administrador sin nombre.
+     */
+    @Test
+    void debeFallarAlCrearAdminSinNombre() {
+        Admin admin = new Admin();
+        admin.setPassword("sinNombre@123");
+
+        assertThrows(DataIntegrityViolationException.class, () -> {
+            adminRepository.save(admin);
+            entityManager.flush();
+        });
+    }
+
+    /**
+     * Verifica que no se pueda crear un administrador sin contraseña.
+     */
+    @Test
+    void debeFallarAlCrearAdminSinPassword() {
+        Admin admin = new Admin();
+        admin.setNombre("sinPassword@123");
+
+        assertThrows(DataIntegrityViolationException.class, () -> {
+            adminRepository.save(admin);
+            entityManager.flush();
+        });
     }
 
 }

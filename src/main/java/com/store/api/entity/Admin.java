@@ -16,9 +16,11 @@ public class Admin {
     private Long id;
     
     /** Nombre de usuario del administrador. */
+    @Column(nullable = false, unique = true)
     private String nombre;
     
     /** Contraseña encriptada del administrador. */
+    @Column(name = "password_hash", nullable = false)
     private String password;
 
     public Admin() {}
