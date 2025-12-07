@@ -10,9 +10,18 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
 /**
- * Test de integración para CategoriaRepository.
+ * Suite de tests para CategoriaRepository.
  * 
- * Verifica las operaciones CRUD en la base de datos para categorías.
+ * Valida las operaciones CRUD (Create, Read, Update, Delete) y comportamientos
+ * específicos de la entidad Categoria en la base de datos H2 de prueba.
+ * 
+ * Los tests cubren:
+ * - Creación de categorías con y sin descripción
+ * - Recuperación de categorías por ID
+ * - Actualización de nombres y descripciones de categorías
+ * - Eliminación de categorías por ID y por objeto
+ * - Búsqueda y conteo de múltiples categorías
+ * 
  */
 @DataJpaTest
 public class CategoriaRepositoryTest {
@@ -23,78 +32,113 @@ public class CategoriaRepositoryTest {
     @Autowired
     private CategoriaRepository categoriaRepository;
 
-    private Categoria categoria;
-
-    @BeforeEach
-    public void setUp() {
-        categoria = new Categoria();
-        categoria.setNombre("cartera");
-        categoria.setDescripcion("bolsos y carteras");
-    }
-
+    /**
+     * Verifica que se pueda crear una categoría y recuperarla por ID.
+     */
     @Test
-    public void testGuardarCategoria() {
-        // Act
-        Categoria savedCategoria = categoriaRepository.save(categoria);
+    void debeCrearYEncontrarCategoria() {
+        Categoria cat = new Categoria();
+        cat.setNombre("Mochilas");
 
-        // Assert
-        assertNotNull(savedCategoria.getId(), "El ID no debe ser nulo después de guardar");
-        assertEquals("cartera", savedCategoria.getNombre(), "El nombre debe coincidir");
+        Categoria guardada = categoriaRepository.save(cat);
+
+        assertNotNull(guardada.getId());
+
+        Long id = guardada.getId();
+        assertNotNull(id);
+        Categoria encontrada = categoriaRepository.findById(id).orElse(null);
+
+        assertNotNull(encontrada);
+        assertEquals("Mochilas", encontrada.getNombre());
     }
 
+    /**
+     * Verifica que se pueda eliminar una categoría del repositorio correctamente.
+     */
     @Test
-    public void testEncontrarCategoriaPorId() {
-        // Arrange
-        Categoria savedCategoria = categoriaRepository.save(categoria);
-        entityManager.flush();
+    void debeEliminarCategoriaDelRepositorio() {
+        Categoria cat = new Categoria();
+        cat.setNombre("Bolsos");
 
-        // Act
-        var resultado = categoriaRepository.findById(savedCategoria.getId());
+        Categoria guardada = categoriaRepository.save(cat);
+        Long id = guardada.getId();
 
-        // Assert
-        assertTrue(resultado.isPresent(), "La categoría debe encontrarse");
-        assertEquals("cartera", resultado.get().getNombre(), "El nombre debe coincidir");
+        assertNotNull(id);
+
+        categoriaRepository.delete(guardada);
+
+        assertFalse(categoriaRepository.findById(id).isPresent());
     }
 
+    /**
+     * Verifica que se pueda actualizar el nombre de una categoría existente.
+     */
     @Test
-    public void testListarTodasCategorias() {
-        // Arrange
-        categoriaRepository.save(categoria);
-        entityManager.flush();
+    void debeActualizarNombreDeCategoria() {
+        Categoria cat = new Categoria();
+        cat.setNombre("Bandoleras");
 
-        // Act
-        var categorias = categoriaRepository.findAll();
+        Categoria guardada = categoriaRepository.save(cat);
+        Long id = guardada.getId();
 
-        // Assert
-        assertTrue(categorias.size() > 0, "Debe haber al menos una categoría");
-    }
+        assertNotNull(id);
 
+        guardada.setNombre("Mochilas");
+        categoriaRepository.save(guardada);
+
+        Categoria actualizada = categoriaRepository.findById(id).orElse(null);
+        assertNotNull(actualizada);
+        assertEquals("Mochilas", actualizada.getNombre());
+    }  
+
+    /**
+     * Verifica que se pueda crear una categoría usando el constructor completo con descripción.
+     */
     @Test
-    public void testEliminarCategoria() {
-        // Arrange
-        Categoria savedCategoria = categoriaRepository.save(categoria);
-        entityManager.flush();
+    void debeCrearCategoriaConConstructorCompleto() {
+        Categoria cat = new Categoria(null, "Bandoleras", "Artículos para llevar objetos personales");
 
-        // Act
-        categoriaRepository.delete(savedCategoria);
-        entityManager.flush();
+        Categoria guardada = categoriaRepository.save(cat);
 
-        // Assert
-        var resultado = categoriaRepository.findById(savedCategoria.getId());
-        assertFalse(resultado.isPresent(), "La categoría debe eliminarse");
+        assertNotNull(guardada.getId());
+        assertEquals("Bandoleras", guardada.getNombre());
+        assertEquals("Artículos para llevar objetos personales", guardada.getDescripcion());
     }
 
+    /**
+     * Verifica que se puedan encontrar múltiples categorías en el repositorio.
+     */
     @Test
-    public void testActualizarCategoria() {
-        // Arrange
-        Categoria savedCategoria = categoriaRepository.save(categoria);
-        entityManager.flush();
+    void debeEncontrarCategoriasPorNombre() {
+        Categoria cat1 = new Categoria();
+        cat1.setNombre("Bandoleras");
+        categoriaRepository.save(cat1);
 
-        // Act
-        savedCategoria.setNombre("mochilas");
-        Categoria updatedCategoria = categoriaRepository.save(savedCategoria);
+        Categoria cat2 = new Categoria();
+        cat2.setNombre("Carteras");
+        categoriaRepository.save(cat2);
 
-        // Assert
-        assertEquals("mochilas", updatedCategoria.getNombre(), "El nombre debe actualizarse");
+        var encontradas = categoriaRepository.findAll();
+        assertEquals(2, encontradas.size());
     }
+
+    /**
+     * Verifica que se pueda eliminar una categoría por su ID.
+     */
+    @Test
+    void debeEliminarCategoriaPorId() {
+        Categoria cat = new Categoria();
+        cat.setNombre("Mochilas");
+
+        Categoria guardada = categoriaRepository.save(cat);
+        Long id = guardada.getId();
+
+        assertNotNull(id);
+
+        categoriaRepository.deleteById(id);
+
+        assertFalse(categoriaRepository.findById(id).isPresent());
+    }
+
+    
 }

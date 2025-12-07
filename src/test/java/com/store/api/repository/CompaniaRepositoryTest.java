@@ -122,8 +122,8 @@ public class CompaniaRepositoryTest {
         comp3.setNombre("THAT");
         companiaRepository.save(comp3);
 
-        var todas = companiaRepository.findAll();
-        assertTrue(todas.size() >= 3);
+        var encontradas = companiaRepository.findAll();
+        assertEquals(3, encontradas.size());
     }
 
     /**
@@ -186,6 +186,9 @@ public class CompaniaRepositoryTest {
         assertEquals("GC", encontrada3.getNombre());
     }
 
+    /**
+     * Verifica que se pueda actualizar el nombre de una compañía 3 veces.
+     */
     @Test
     void debeActualizarTresVecesNombreDeCompania() {
         Compania comp = new Compania();
