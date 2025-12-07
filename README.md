@@ -45,5 +45,24 @@ src/main/java/com/store/api
 
 Puerto por defecto: `8080` (configurable en `src/main/resources/application.properties`).
 
+
+**Configuración de base de datos con .env**
+
+Podes usar el archivo `.env` para definir el usuario, contraseña, URL de la base de datos, etc.
+
+Ejemplo de `.env`:
+
+```
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=milocal
+DB_USER=postgres
+DB_PASSWORD=miClaveSegura
+
+SPRING_JPA_DDL=update
+SPRING_SHOW_SQL=true
+SPRING_FORMAT_SQL=true
+```
+
 **Licencia**
 - Ver `LICENSE` en la raíz del repositorio.

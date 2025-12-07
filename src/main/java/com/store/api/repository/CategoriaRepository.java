@@ -1,5 +1,9 @@
 package com.store.api.repository;
 
-// Placeholder repository interface - replace with Spring Data JPA as needed
-public interface CategoriaRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.store.api.entity.Categoria;
+
+public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
 }
+

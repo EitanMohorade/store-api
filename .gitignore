@@ -4,6 +4,13 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+.env
+
+src/main/resources/application.yml
+
+# Ignorar todos los application.properties del proyecto
+**/application.properties
+
 ### STS ###
 .apt_generated
 .classpath
