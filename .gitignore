@@ -4,6 +4,8 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+.env
+
 ### Spring config ###
 src/main/resources/application.properties
 src/main/resources/application.yml
