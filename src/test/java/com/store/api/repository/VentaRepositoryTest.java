@@ -27,6 +27,7 @@ import com.store.api.entity.Venta;
  * - Búsqueda y conteo de múltiples ventas
  * - Validación de restricciones (e.g., venta sin producto)
  * - Cálculo de precios unitarios y totales
+ * - Búsqueda de ventas por rangos de fechas
  * 
  */
 @DataJpaTest
@@ -231,6 +232,109 @@ public class VentaRepositoryTest {
         venta.setCantidad(4);
 
         assertEquals(0, venta.getTotalPrecioCliente());
+    }
+
+    @Test
+    void debeEncontrarVentasDentroDeRangoDeFechas() {
+
+        Producto p = entityManager.persist(producto);
+
+        LocalDateTime inicio = LocalDateTime.of(2025, 5, 1, 0, 0);
+        LocalDateTime fin = LocalDateTime.of(2025, 5, 31, 23, 59);
+        
+        Venta ventaInicio = new Venta();
+        ventaInicio.setProducto(p);
+        ventaInicio.setCantidad(1);
+        ventaInicio.setFecha(inicio);
+
+        Venta ventaPlus = new Venta();
+        ventaPlus.setProducto(p);
+        ventaPlus.setCantidad(1);
+        ventaPlus.setFecha(inicio.plusDays(10));
+
+        Venta ventaFin = new Venta();
+        ventaFin.setProducto(p);
+        ventaFin.setCantidad(1);
+        ventaFin.setFecha(fin);
+
+        Venta v1 = entityManager.persist(ventaInicio);
+        Venta v2 = entityManager.persist(ventaPlus);
+        Venta v3 = entityManager.persist(ventaFin);
+        entityManager.flush();
+
+        var resultado = ventaRepository.findByFechaBetween(inicio, fin);
+
+        assertEquals(3, resultado.size());
+    }
+
+    @Test
+    void debeEncontrarVentasAnterioresOIgualesALaFecha() {
+        Producto p = entityManager.persist(producto);
+
+        LocalDateTime fechaBase = LocalDateTime.of(2025, 4, 20, 12, 0);
+
+        Venta ventaBase = new Venta();
+        ventaBase.setProducto(p);
+        ventaBase.setCantidad(1);
+        ventaBase.setFecha(fechaBase);
+
+        Venta ventaAnterior = new Venta();
+        ventaAnterior.setProducto(p);
+        ventaAnterior.setCantidad(2);
+        ventaAnterior.setFecha(fechaBase.minusDays(1));
+
+        Venta v1 = entityManager.persist(ventaAnterior);
+        Venta v2 = entityManager.persist(ventaBase);
+        entityManager.flush();
+
+        var resultado = ventaRepository.findByFechaLessThanEqual(fechaBase);
+
+        assertEquals(2, resultado.size());
+    }
+
+    @Test
+void debeEncontrarVentasPosterioresOIgualesALaFecha() {
+    Producto p = entityManager.persist(producto);
+
+    LocalDateTime fechaBase = LocalDateTime.of(2025, 3, 10, 10, 0);
+
+    Venta ventaBase = new Venta();
+    ventaBase.setProducto(p);
+    ventaBase.setCantidad(1);
+    ventaBase.setFecha(fechaBase);
+
+    Venta ventaPosterior = new Venta();
+    ventaPosterior.setProducto(p);
+    ventaPosterior.setCantidad(2);
+    ventaPosterior.setFecha(fechaBase.plusDays(1));
+
+    Venta v1 = entityManager.persist(ventaBase);
+    Venta v2 = entityManager.persist(ventaPosterior);
+    entityManager.flush();
+
+    var resultado = ventaRepository.findByFechaGreaterThanEqual(fechaBase);
+
+    assertEquals(2, resultado.size());
+}
+
+    @Test
+    void debeEncontrarVentasPorFechaExacta() {
+        Producto p = entityManager.persist(producto);
+
+        LocalDateTime fecha = LocalDateTime.of(2025, 1, 15, 10, 30);
+
+        Venta venta = new Venta();
+        venta.setProducto(p);
+        venta.setCantidad(2);
+        venta.setFecha(fecha);
+
+        Venta v1 = entityManager.persist(venta);
+        entityManager.flush();
+
+        var resultado = ventaRepository.findByFecha(fecha);
+
+        assertEquals(1, resultado.size());
+        assertEquals(v1.getId(), resultado.get(0).getId());
     }
 
 }

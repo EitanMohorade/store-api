@@ -73,7 +73,7 @@ public class Venta {
 
 
     public LocalDateTime getFecha() {return fecha;}
-//    public void setFecha(LocalDateTime fecha) {this.fecha = fecha;}
+    public void setFecha(LocalDateTime fecha) {this.fecha = fecha;}
 
     public Producto getProducto() {return producto;}
     public void setProducto(Producto producto) {this.producto = producto;}
