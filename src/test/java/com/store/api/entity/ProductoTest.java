@@ -76,7 +76,9 @@ public class ProductoTest {
         producto.setStock(stock);
         producto.setImagenUrl(imagenUrl);
         producto.setCompania(compania);
+        producto.setId(id);
 
+        assertEquals(id, producto.getId(), "El ID debe actualizarse");
         assertEquals(articulo, producto.getArticulo(), "El artículo debe actualizarse");
         assertEquals(descripcion, producto.getDescripcion(), "La descripción debe actualizarse");
         assertEquals(precio, producto.getPrecio(), "El precio debe actualizarse");

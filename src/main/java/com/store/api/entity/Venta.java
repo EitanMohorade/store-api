@@ -75,7 +75,7 @@ public class Venta {
 
 
     public LocalDateTime getFecha() {return fecha;}
-    public void setFecha(LocalDateTime fecha) {this.fecha = fecha;}
+//    public void setFecha(LocalDateTime fecha) {this.fecha = fecha;}
 
     public Producto getProducto() {return producto;}
     public void setProducto(Producto producto) {this.producto = producto;}
@@ -115,7 +115,7 @@ public class Venta {
      */
     @Transient
     public Integer getTotalPrecioUnitario() {
-        return getTotalPrecioUnitario() * cantidad;
+        return getPrecioUnitario() * (cantidad != null ? cantidad : 0);
     }
 
     /**
@@ -127,6 +127,6 @@ public class Venta {
      */
     @Transient
     public Integer getTotalPrecioCliente() {
-        return getTotalPrecioCliente() * cantidad;
-    }
+        return getPrecio() * (cantidad != null ? cantidad : 0);
+}
 }
