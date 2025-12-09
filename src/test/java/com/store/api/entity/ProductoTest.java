@@ -36,8 +36,9 @@ public class ProductoTest {
         int stock = 10;
         String imagenUrl = "http://ejemplo.com/imagen.jpg";
         Compania compania = new Compania(1L, "GC");
+        int precioUnitario = 150;
 
-        Producto producto = new Producto(id, articulo, descripcion, precio, categoria, stock, imagenUrl, compania);
+        Producto producto = new Producto(id, articulo, descripcion, precio, categoria, stock, imagenUrl, compania, precioUnitario);
 
         assertEquals(id, producto.getId(), "El ID debe coincidir");
         assertEquals(articulo, producto.getArticulo(), "El artículo debe coincidir");
@@ -47,6 +48,7 @@ public class ProductoTest {
         assertEquals(stock, producto.getStock(), "El stock debe coincidir");
         assertEquals(imagenUrl, producto.getImagenUrl(), "La URL de imagen debe coincidir");
         assertEquals(compania, producto.getCompania(), "La compañía debe coincidir");
+        assertEquals(precioUnitario, producto.getPrecioUnitario(), "El precio unitario debe coincidir");
     }
 
     /**
@@ -54,17 +56,35 @@ public class ProductoTest {
      */
     @Test
     public void testSettersYGetters() {
-        Producto producto = new Producto();
-        String articulo = "123";
-        String descripcion = "Bolso de cuero";
-        int precio = 25;
+        Long id = 1L;
+        String articulo = "Cartera";
+        String descripcion = "Cartera de alta gama";
+        int precio = 1500;
+        Categoria categoria = new Categoria(1L, "Mochila", "Productos de mochila");
+        int stock = 10;
+        String imagenUrl = "http://ejemplo.com/imagen.jpg";
+        Compania compania = new Compania(1L, "GC");
+        int precioUnitario = 150;
+
+        Producto producto = new Producto(id, articulo, descripcion, precio, categoria, stock, imagenUrl, compania, precioUnitario);
 
         producto.setArticulo(articulo);
         producto.setDescripcion(descripcion);
         producto.setPrecio(precio);
+        producto.setPrecioUnitario(precioUnitario);
+        producto.setCategoria(categoria);
+        producto.setStock(stock);
+        producto.setImagenUrl(imagenUrl);
+        producto.setCompania(compania);
 
         assertEquals(articulo, producto.getArticulo(), "El artículo debe actualizarse");
         assertEquals(descripcion, producto.getDescripcion(), "La descripción debe actualizarse");
         assertEquals(precio, producto.getPrecio(), "El precio debe actualizarse");
+        assertEquals(precioUnitario, producto.getPrecioUnitario(), "El precio unitario debe actualizarse");
+        assertEquals(categoria, producto.getCategoria(), "La categoría debe actualizarse");
+        assertEquals(stock, producto.getStock(), "El stock debe actualizarse");
+        assertEquals(imagenUrl, producto.getImagenUrl(), "La URL de imagen debe actualizarse");
+        assertEquals(compania, producto.getCompania(), "La compañía debe actualizarse");
     }
+
 }

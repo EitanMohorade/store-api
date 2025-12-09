@@ -7,6 +7,16 @@ import jakarta.persistence.*;
  * 
  * Un producto es un artículo de inventario que pertenece a una categoría,
  * tiene asociado un stock, preio y precio unitario y pertenece a una compañía.
+ * 
+ * @param id Identificador único del producto
+ * @param articulo Nombre o código del artículo
+ * @param descripcion Descripción detallada del producto
+ * @param precio Precio unitario del producto en unidades monetarias
+ * @param categoria Categoría a la que pertenece el producto
+ * @param stock Cantidad disponible en inventario
+ * @param imagenUrl URL de la imagen del producto
+ * @param compania Compañía propietaria del producto
+ * @param precioUnitario Precio cliente del producto
  */
 @Entity
 public class Producto {

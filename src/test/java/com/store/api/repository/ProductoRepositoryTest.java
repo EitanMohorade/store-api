@@ -118,7 +118,7 @@ class ProductoRepositoryTest {
         comp.setNombre("THAT");
         entityManager.persist(comp);
 
-        Producto cartera = new Producto(null, "699", "Cartera deportiva resistente al agua", 95, cat, 75, "http://img.com/cartera-sport.jpg", comp);
+        Producto cartera = new Producto(null, "699", "Cartera deportiva resistente al agua", 95, cat, 75, "http://img.com/cartera-sport.jpg", comp, 2);
 
         Producto guardado = productoRepository.save(cartera);
 

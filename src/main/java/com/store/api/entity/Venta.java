@@ -19,11 +19,9 @@ import jakarta.persistence.Transient;
  * la cantidad y la fecha de realización. Se relaciona con la entidad Producto para
  * obtener el precio unitario al momento de la venta.
  * 
- * Características principales:
- * - Registro automático de fecha y hora de la venta
- * - Cálculo automático del total (cantidad × precio del producto)
- * - Relación obligatoria con Producto
- * - Obtiene el precio unitario del Producto asociado
+ * @param id Identificador de la venta
+ * @param producto Producto vendido
+ * @param cantidad Cantidad de unidades vendidas
  * 
  */
 @Entity
@@ -61,10 +59,12 @@ public class Venta {
      * La fecha se establece a la hora actual.
      * El precio se obtiene del Producto asociado.
      * 
+     * @param id Identificador de la venta
      * @param producto Producto vendido
      * @param cantidad Cantidad de unidades vendidas
      */
-    public Venta(Producto producto, Integer cantidad) {
+    public Venta(Long id, Producto producto, Integer cantidad) {
+        this.id = id;
         this.producto = producto;
         this.cantidad = cantidad;
         this.fecha = LocalDateTime.now();
