@@ -33,16 +33,14 @@ public class Venta {
     private Long id;
 
     /** Fecha y hora en que se realizó la venta. Por defecto es la fecha actual. */
-    @Column(nullable = false)
     private LocalDateTime fecha;
 
     /** Producto que fue vendido. Relación obligatoria. */
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "producto_id")
+    @ManyToOne
+    @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 
     /** Cantidad de unidades vendidas del producto. */
-    @Column(nullable = false)
     private Integer cantidad;
 
     /**
