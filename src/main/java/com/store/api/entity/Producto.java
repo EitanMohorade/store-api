@@ -6,7 +6,17 @@ import jakarta.persistence.*;
  * Entidad que representa un producto en el sistema.
  * 
  * Un producto es un artículo de inventario que pertenece a una categoría,
- * tiene asociado un stock, y pertenece a una compañía.
+ * tiene asociado un stock, preio y precio unitario y pertenece a una compañía.
+ * 
+ * @param id Identificador único del producto
+ * @param articulo Nombre o código del artículo
+ * @param descripcion Descripción detallada del producto
+ * @param precio Precio unitario del producto en unidades monetarias
+ * @param categoria Categoría a la que pertenece el producto
+ * @param stock Cantidad disponible en inventario
+ * @param imagenUrl URL de la imagen del producto
+ * @param compania Compañía propietaria del producto
+ * @param precioUnitario Precio cliente del producto
  */
 @Entity
 public class Producto {
@@ -25,6 +35,9 @@ public class Producto {
     /** Precio unitario del producto en unidades monetarias. */
     private int precio;
 
+    /** Precio cliente del producto. */
+    private int precioUnitario;
+
     /** Categoría a la que pertenece el producto. */
     @ManyToOne
     private Categoria categoria;
@@ -42,7 +55,7 @@ public class Producto {
     public Producto() {}
 
     public Producto(Long id, String articulo, String descripcion, int precio, Categoria categoria,
-                    int stock, String imagenUrl, Compania compania) {
+                    int stock, String imagenUrl, Compania compania, int precioUnitario) {
         this.id = id;
         this.articulo = articulo;
         this.descripcion = descripcion;
@@ -51,6 +64,7 @@ public class Producto {
         this.stock = stock;
         this.imagenUrl = imagenUrl;
         this.compania = compania;
+        this.precioUnitario = precioUnitario;
     }
 
     public Long getId() { return id; }
@@ -64,6 +78,9 @@ public class Producto {
 
     public int getPrecio() { return precio; }
     public void setPrecio(int precio) { this.precio = precio; }
+
+    public int getPrecioUnitario() { return precioUnitario; }
+    public void setPrecioUnitario(int precioUnitario) { this.precioUnitario = precioUnitario; }
 
     public Categoria getCategoria() { return categoria; }
     public void setCategoria(Categoria categoria) { this.categoria = categoria; }
