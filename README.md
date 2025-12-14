@@ -32,16 +32,29 @@ controlador de stock (productos, categorías y stock).
 ```
 src/main/java/com/store/api
 ├── StoreApiApplication.java
-├── controller/    # endpoints REST (Producto, Categoria, Stock)
+├── controller/    # endpoints REST (Producto, Categoria, Admin, Compania, Venta)
+├── exception/     # excepciones personalizadas
 ├── service/       # lógica de negocio
 ├── repository/    # acceso a datos (placeholders)
-└── entity/        # entidades (Producto, Categoria, Stock)
+└── entity/        # entidades (Producto, Categoria, Admin, Compania, Venta)
+```
+
+Luego, si quieren revisar, están los test del proyecto:
+
+```
+src/test/java/com/store/api
+├── StoreApiApplicationTests.java
+├── controller/    
+├── exception/     
+├── service/       
+├── repository/    
+└── entity/        
 ```
 
 **Endpoints de ejemplo**
 - `GET /api/productos`  → lista de productos (ejemplo)
 - `GET /api/categorias` → lista de categorías (ejemplo)
-- `GET /api/stock`      → estado de stock (ejemplo)
+
 
 Puerto por defecto: `8080` (configurable en `src/main/resources/application.properties`).
 
