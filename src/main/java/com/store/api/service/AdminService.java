@@ -1,8 +1,60 @@
 package com.store.api.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.store.api.entity.Admin;
+import com.store.api.exception.ValidationException;
+import com.store.api.repository.AdminRepository;
 
 @Service
 public class AdminService {
+    @Autowired
+    private AdminRepository adminRepository;
     
+    /**
+     * Crea un nuevo administrador después de validarlo.
+     * 
+     * @param admin Administrador a crear
+     * @return Administrador creado con ID generado
+     * @throws ValidationException si el administrador no cumple validaciones
+     */
+    public  Admin create(Admin admin) {
+        validate(admin);
+
+        return adminRepository.save(admin);
+    }
+
+    /**
+     * Actualiza un administrador existente.
+     * 
+     * @param id ID del administrador a actualizar
+     * @param admin Administrador con datos actualizados
+     * @return Administrador actualizado
+     * @throws ValidationException si el administrador no cumple validaciones
+     */
+    public Admin update(Long id, Admin admin) {
+        validate(admin);
+
+        admin.setId(id);
+        return adminRepository.save(admin);
+    }
+
+    /**
+     * Valida los datos del administrador.
+     * 
+     * @param admin Administrador a validar
+     * @throws ValidationException si el administrador no cumple validaciones
+     */
+    private void validate(Admin admin) {
+        if (admin.getNombre() == null || admin.getNombre().isBlank()) {
+            throw new ValidationException("El nombre del administrador no puede estar vacío");
+        }
+        if (admin.getPassword() == null || admin.getPassword().isBlank()) {
+            throw new ValidationException("La contraseña del administrador no puede estar vacía");
+        }
+        if(adminRepository.existsByNombre(admin.getNombre())) {
+            throw new ValidationException("Ya existe un administrador con el mismo nombre");
+        }
+    }
 }

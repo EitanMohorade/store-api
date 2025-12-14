@@ -30,6 +30,8 @@ import com.store.api.entity.Venta;
 @Repository
 public interface VentaRepository extends JpaRepository<Venta, Long> {
 
+    boolean existsById(Long id);
+
     /**
      * Encuentra todas las ventas realizadas en una fecha específica.
      * 

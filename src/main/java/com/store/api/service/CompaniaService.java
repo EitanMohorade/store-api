@@ -6,9 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.store.api.entity.Compania;
+import com.store.api.exception.InvalidStateException;
+import com.store.api.exception.ResourceNotFoundException;
 import com.store.api.repository.CompaniaRepository;
-
-import jakarta.persistence.EntityNotFoundException;
 
 /**
  * Servicio de negocio para la entidad Compañía.
@@ -28,7 +28,7 @@ public class CompaniaService {
      * 
      * @param compania Compañía a crear
      * @return Compañía creada con ID generado
-     * @throws IllegalArgumentException si la compañía no cumple validaciones
+     * @throws InvalidStateException si la compañía no cumple validaciones
      */
     public Compania create(Compania compania) {
         validate(compania);
@@ -39,11 +39,11 @@ public class CompaniaService {
      * Elimina una compañía por su ID.
      * 
      * @param id ID de la compañía a eliminar
-     * @throws RuntimeException si la compañía no existe
+     * @throws ResourceNotFoundException si la compañía no existe
      */
     public void delete(Long id) {
         if (!companiaRepository.existsById(id)) {
-            throw new RuntimeException("Compañía no encontrada");
+            throw new ResourceNotFoundException();
         }
         companiaRepository.deleteById(id);
     }
@@ -53,7 +53,9 @@ public class CompaniaService {
      * 
      * @param id ID de la compañía a actualizar
      * @param compania Compañía con datos actualizados
-     * @throws IllegalArgumentException si la compañía no cumple validaciones
+     * @return Compañía actualizada
+     * @throws ResourceNotFoundException si la compañía no existe
+     * @throws InvalidStateException si la compañía no cumple validaciones
      */
     public Compania update(Long id, Compania compania) {
         Compania existente = findById(id);
@@ -69,11 +71,11 @@ public class CompaniaService {
      * 
      * @param id ID de la compañía
      * @return Compañía encontrada
-     * @throws RuntimeException si la compañía no existe
+     * @throws ResourceNotFoundException si la compañía no existe
      */
     public Compania findById(Long id) {
         return companiaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Compañía no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException());
     }
 
     /**
@@ -100,11 +102,11 @@ public class CompaniaService {
      * 
      * @param nombre Nombre de la compañía
      * @return Compañía encontrada
-     * @throws RuntimeException si la compañía no existe
+     * @throws ResourceNotFoundException si la compañía no existe
      */
     public Compania findByNombre(String nombre) {
         return companiaRepository.findByNombreIgnoreCase(nombre)
-                .orElseThrow(() -> new RuntimeException("Compañía no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException());
     }
     
     /**
@@ -120,14 +122,17 @@ public class CompaniaService {
     /** Valida los datos de una compañía.
      * 
      * @param compania Compañía a validar
-     * @throws IllegalArgumentException si la compañía no cumple validaciones
+     * @throws InvalidStateException si los datos no son válidos
      */
     private void validate(Compania compania) {
         if (compania.getNombre() == null || compania.getNombre().trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre de la compañía no puede estar vacío");
+            throw new InvalidStateException("El nombre de la compañía es obligatorio");
         }
         if (compania.getNombre().length() > 100) {
-            throw new IllegalArgumentException("El nombre de la compañía no puede exceder 100 caracteres");
+            throw new InvalidStateException("El nombre de la compañía no puede exceder 100 caracteres");
+        }
+        if(companiaRepository.existsByNombre(compania.getNombre())) {
+            throw new InvalidStateException("Ya existe una compañía con el mismo nombre");
         }
     }
 }

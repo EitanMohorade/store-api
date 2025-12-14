@@ -7,6 +7,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import com.store.api.repository.ProductoRepository;
 import com.store.api.entity.Producto;
+import com.store.api.exception.DuplicateResourceException;
+import com.store.api.exception.ResourceNotFoundException;
+import com.store.api.exception.StockInsufficientException;
+import com.store.api.exception.ValidationException;
 
 /**
  * Servicio de negocio para la entidad Producto.
@@ -26,7 +30,8 @@ public class ProductoService {
      * 
      * @param producto Producto a crear
      * @return Producto creado con ID generado
-     * @throws IllegalArgumentException si el producto no cumple validaciones
+     * @throws ValidationException si el producto no cumple validaciones
+     * @throws DuplicateResourceException si el artículo ya existe
      */
     public Producto create(Producto Producto) {
         validate(Producto);
@@ -38,11 +43,11 @@ public class ProductoService {
      * 
      * @param id ID del producto
      * @return Producto encontrado
-     * @throws com.store.api.exception.ResourceNotFoundException si el producto no existe
+     * @throws ResourceNotFoundException si el producto no existe
      */
     public Producto findById(Long id) {
         return productoRepositorio.findById(id)
-                .orElseThrow(com.store.api.exception.ResourceNotFoundException::new);
+                .orElseThrow(ResourceNotFoundException::new);
     }
 
     /**
@@ -60,10 +65,11 @@ public class ProductoService {
      * @param id ID del producto a actualizar
      * @param data Datos del producto con los valores actualizados
      * @return Producto actualizado
-     * @throws RuntimeException si el producto no existe
-     * @throws IllegalArgumentException si los datos no son válidos
+     * @throws ResourceNotFoundException si el producto no existe
+     * @throws ValidationException si el producto no cumple validaciones
      */
     public Producto update(Long id, Producto data) {
+        
         validate(data);
         Producto existing = findById(id);
 
@@ -82,10 +88,11 @@ public class ProductoService {
      * Elimina un producto por su ID.
      * 
      * @param id ID del producto a eliminar
+     * @throws ResourceNotFoundException si el producto no existe
      */
     public void delete(Long id) {
         if (!productoRepositorio.existsById(id)) {
-            throw new com.store.api.exception.ResourceNotFoundException();
+            throw new ResourceNotFoundException();
         }
         productoRepositorio.deleteById(id);
     }
@@ -105,13 +112,13 @@ public class ProductoService {
      * 
      * @param id ID del producto
      * @param cantidad Cantidad a sumar o restar del stock (puede ser negativa)
-     * @throws com.store.api.exception.StockInsufficientException si el stock resultante es negativo
+     * @throws StockInsufficientException si el stock resultante es negativo
      */
     public void modifyStock(Long id, int cantidad) {
         Producto producto = findById(id);
         int nuevoStock = producto.getStock() + cantidad;
         if (nuevoStock < 0) {
-            throw new com.store.api.exception.StockInsufficientException();
+            throw new StockInsufficientException();
         }
         producto.setStock(nuevoStock);
         productoRepositorio.save(producto);
@@ -122,8 +129,12 @@ public class ProductoService {
      * 
      * @param companiaId ID de la compañía
      * @return Lista de productos de la compañía
+     * @throws ValidationException si el ID de la compañía es nulo
      */
     public List<Producto> findByCompaniaId(Long companiaId) {
+        if (companiaId == null) {
+            throw new ValidationException("El ID de la compañía no puede ser nulo");
+        }
         return productoRepositorio.findAll().stream()
                 .filter(producto -> producto.getCompania().getId().equals(companiaId))
                 .toList();
@@ -134,8 +145,12 @@ public class ProductoService {
      * 
      * @param categoriaId ID de la categoría
      * @return Lista de productos de la categoría
+     * @throws ValidationException si el ID de la categoría es nulo
      */
     public List<Producto> findByCategoriaId(Long categoriaId) {
+        if (categoriaId == null) {
+            throw new ValidationException("El ID de la categoría no puede ser nulo");
+        }
         return productoRepositorio.findAll().stream()
                 .filter(producto -> producto.getCategoria().getId().equals(categoriaId))
                 .toList();
@@ -160,11 +175,11 @@ public class ProductoService {
      * 
      * @param articulo Término de búsqueda (insensible a mayúsculas/minúsculas)
      * @return Lista de productos que coinciden con el término
-     * @throws IllegalArgumentException si el término de búsqueda está vacío
-     */
+     * @throws ValidationException si el término de búsqueda es nulo o vacío
+     * */
     public List<Producto> findByArticuloContaining(String articulo) {
         if (articulo == null || articulo.isBlank()) {
-            throw new com.store.api.exception.ValidationException("El término de artículo no puede estar vacío");
+            throw new ValidationException("El término de artículo no puede estar vacío");
         }
         return productoRepositorio.findAll().stream()
                 .filter(producto -> producto.getArticulo().toLowerCase().contains(articulo.toLowerCase()))
@@ -176,8 +191,12 @@ public class ProductoService {
      * 
      * @param stock Cantidad mínima de stock
      * @return Lista de productos con stock >= cantidad especificada
+     * @throws ValidationException si el stock es negativo
      */
     public List<Producto> findByStock(int stock) {
+        if (stock < 0) {
+            throw new ValidationException("El stock no puede ser negativo");
+        }
         return productoRepositorio.findAll().stream()
                 .filter(producto -> producto.getStock() >= stock)
                 .toList();
@@ -189,14 +208,14 @@ public class ProductoService {
      * @param minPrecio Precio mínimo (inclusive)
      * @param maxPrecio Precio máximo (inclusive)
      * @return Lista de productos dentro del rango de precios
-     * @throws com.store.api.exception.ValidationException si los precios son negativos o el rango es inválido
+     * @throws ValidationException si los precios son negativos o el rango es inválido
      */
     public List<Producto> findByPrecioRange(int minPrecio, int maxPrecio) {
         if (minPrecio < 0 || maxPrecio < 0) {
-            throw new com.store.api.exception.ValidationException("El precio no puede ser negativo");
+            throw new ValidationException("El precio no puede ser negativo");
         }
         if (minPrecio > maxPrecio) {
-            throw new com.store.api.exception.ValidationException("El rango de precios es inválido (min > max)");
+            throw new ValidationException("El rango de precios es inválido (min > max)");
         }
         return productoRepositorio.findAll().stream()
                 .filter(producto -> producto.getPrecio() >= minPrecio && producto.getPrecio() <= maxPrecio)
@@ -249,21 +268,21 @@ public class ProductoService {
      * Valida los atributos de un producto.
      * 
      * @param p Producto a validar
-     * @throws com.store.api.exception.ValidationException si alguna validación falla
-     * @throws com.store.api.exception.DuplicateResourceException si el artículo ya existe
+     * @throws ValidationException si alguna validación falla
+     * @throws DuplicateResourceException si el artículo ya existe
      */
     private void validate(Producto p) {
         if (p.getPrecio() < 0) {
-            throw new com.store.api.exception.ValidationException("El precio no puede ser negativo");
+            throw new ValidationException("El precio no puede ser negativo");
         }
         if (p.getStock() < 0) {
-            throw new com.store.api.exception.ValidationException("El stock no puede ser negativo");
+            throw new ValidationException("El stock no puede ser negativo");
         }
         if (p.getArticulo() == null || p.getArticulo().isBlank()) {
-            throw new com.store.api.exception.ValidationException("El artículo no puede estar vacío");
+            throw new ValidationException("El artículo no puede estar vacío");
         }
         if (productoRepositorio.existsByArticulo(p.getArticulo())) {
-            throw new com.store.api.exception.DuplicateResourceException("El artículo ya existe");
+            throw new DuplicateResourceException("El artículo ya existe");
         }
     }
 
