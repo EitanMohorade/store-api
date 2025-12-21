@@ -66,11 +66,10 @@ public class ProductoService {
      * @param data Datos del producto con los valores actualizados
      * @return Producto actualizado
      * @throws ResourceNotFoundException si el producto no existe
-     * @throws ValidationException si el producto no cumple validaciones
+     * @throws ValidationException si los datos no cumplen validaciones
      */
     public Producto update(Long id, Producto data) {
         
-        validate(data);
         Producto existing = findById(id);
 
         existing.setArticulo(data.getArticulo());
@@ -80,6 +79,9 @@ public class ProductoService {
         existing.setImagenUrl(data.getImagenUrl());
         existing.setPrecio(data.getPrecio());
         existing.setStock(data.getStock());
+        existing.setPrecioUnitario(data.getPrecioUnitario());
+
+        validate(existing);
 
         return productoRepositorio.save(existing);
     }
@@ -135,9 +137,7 @@ public class ProductoService {
         if (companiaId == null) {
             throw new ValidationException("El ID de la compañía no puede ser nulo");
         }
-        return productoRepositorio.findAll().stream()
-                .filter(producto -> producto.getCompania().getId().equals(companiaId))
-                .toList();
+        return productoRepositorio.findByCompaniaId(companiaId);
     }
 
     /**
@@ -151,9 +151,7 @@ public class ProductoService {
         if (categoriaId == null) {
             throw new ValidationException("El ID de la categoría no puede ser nulo");
         }
-        return productoRepositorio.findAll().stream()
-                .filter(producto -> producto.getCategoria().getId().equals(categoriaId))
-                .toList();
+        return productoRepositorio.findByCategoriaId(categoriaId);
     }
 
     /**
@@ -164,10 +162,7 @@ public class ProductoService {
      * @return Lista de productos filtrados
      */
     public List<Producto> findByCompaniaIdAndCategoriaId(Long companiaId, Long categoriaId) {
-        return productoRepositorio.findAll().stream()
-                .filter(producto -> producto.getCompania().getId().equals(companiaId)
-                        && producto.getCategoria().getId().equals(categoriaId))
-                .toList();
+        return productoRepositorio.findByCompaniaIdAndCategoriaId(companiaId, categoriaId);
     }
 
     /**
@@ -181,9 +176,7 @@ public class ProductoService {
         if (articulo == null || articulo.isBlank()) {
             throw new ValidationException("El término de artículo no puede estar vacío");
         }
-        return productoRepositorio.findAll().stream()
-                .filter(producto -> producto.getArticulo().toLowerCase().contains(articulo.toLowerCase()))
-                .toList();
+        return productoRepositorio.findByArticuloContainingIgnoreCase(articulo);
     }
 
     /**
@@ -197,9 +190,7 @@ public class ProductoService {
         if (stock < 0) {
             throw new ValidationException("El stock no puede ser negativo");
         }
-        return productoRepositorio.findAll().stream()
-                .filter(producto -> producto.getStock() >= stock)
-                .toList();
+        return productoRepositorio.findByStock(stock);
     }
 
     /**
@@ -217,9 +208,7 @@ public class ProductoService {
         if (minPrecio > maxPrecio) {
             throw new ValidationException("El rango de precios es inválido (min > max)");
         }
-        return productoRepositorio.findAll().stream()
-                .filter(producto -> producto.getPrecio() >= minPrecio && producto.getPrecio() <= maxPrecio)
-                .toList();
+        return productoRepositorio.findByPrecioBetween(minPrecio, maxPrecio);
     }
 
     /**
@@ -237,20 +226,7 @@ public class ProductoService {
      * @return Suma total del stock de todos los productos
      */
     public int getTotalStock() {
-        return productoRepositorio.findAll().stream()
-                .mapToInt(Producto::getStock)
-                .sum();
-    }
-
-    /**
-     * Obtiene los productos con stock bajo (menor a 5 unidades).
-     * 
-     * @return Lista de productos con stock bajo
-     */
-    public List<Producto> findLowStockProducts() {
-        return productoRepositorio.findAll().stream()
-                .filter(producto -> producto.getStock() < 5)
-                .toList();
+        return productoRepositorio.getTotalStock();
     }
 
     /**
@@ -259,9 +235,7 @@ public class ProductoService {
      * @return Lista de productos sin stock
      */
     public List<Producto> findOutOfStockProducts() {
-        return productoRepositorio.findAll().stream()
-                .filter(producto -> producto.getStock() == 0)
-                .toList();
+        return productoRepositorio.findByStock(0);
     }
 
     /**
