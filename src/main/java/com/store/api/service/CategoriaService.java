@@ -63,18 +63,6 @@ public class CategoriaService {
     }
 
     /**
-     * Busca categorías cuyo nombre contenga el término especificado (insensible a mayúsculas/minúsculas).
-     * 
-     * @param nombre Término de búsqueda
-     * @return Lista de categorías que coinciden con el término
-     */
-    public List<Categoria> findByNombreContaining(String nombre) {
-        return categoriaRepository.findAll().stream()
-                .filter(categoria -> categoria.getNombre().toLowerCase().contains(nombre.toLowerCase()))
-                .toList();
-    }
-
-    /**
      * Recupera todas las categorías.
      * 
      * @return Lista de todas las categorías
@@ -103,13 +91,12 @@ public class CategoriaService {
     }
 
     /**
-     * Actualiza una categoría existente.
+     * Valida una categoría antes de su creación o actualización.
      * 
-     * @param id ID de la categoría a actualizar
-     * @param categoria Categoría con datos actualizados
-     * @return Categoría actualizada
-     * @throws ResourceNotFoundException si la categoría no existe
-     * @throws ValidationException si la categoría no cumple validaciones
+     * @param categoria
+     * @throws ValidationException si el nombre es nulo, vacío o excede 100 caracteres
+     * @throws DuplicateResourceException si ya existe una categoría con el mismo nombre
+     * 
      */
     private void validate(Categoria categoria) {
         if (categoria.getNombre() == null || categoria.getNombre().isBlank()) {
