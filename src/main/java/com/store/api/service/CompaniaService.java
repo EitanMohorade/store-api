@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.store.api.entity.Compania;
 import com.store.api.exception.InvalidStateException;
 import com.store.api.exception.ResourceNotFoundException;
+import com.store.api.exception.ValidationException;
 import com.store.api.repository.CompaniaRepository;
 
 /**
@@ -28,7 +29,7 @@ public class CompaniaService {
      * 
      * @param compania Compañía a crear
      * @return Compañía creada con ID generado
-     * @throws InvalidStateException si la compañía no cumple validaciones
+     * @throws ValidationException si la compañía no cumple validaciones
      */
     public Compania create(Compania compania) {
         validate(compania);
@@ -55,7 +56,7 @@ public class CompaniaService {
      * @param compania Compañía con datos actualizados
      * @return Compañía actualizada
      * @throws ResourceNotFoundException si la compañía no existe
-     * @throws InvalidStateException si la compañía no cumple validaciones
+     * @throws ValidationException si la compañía no cumple validaciones
      */
     public Compania update(Long id, Compania compania) {
         Compania existente = findById(id);
@@ -122,17 +123,17 @@ public class CompaniaService {
     /** Valida los datos de una compañía.
      * 
      * @param compania Compañía a validar
-     * @throws InvalidStateException si los datos no son válidos
+     * @throws ValidationException si los datos no son válidos
      */
     private void validate(Compania compania) {
         if (compania.getNombre() == null || compania.getNombre().trim().isEmpty()) {
-            throw new InvalidStateException("El nombre de la compañía es obligatorio");
+            throw new ValidationException("El nombre de la compañía es obligatorio");
         }
         if (compania.getNombre().length() > 100) {
-            throw new InvalidStateException("El nombre de la compañía no puede exceder 100 caracteres");
+            throw new ValidationException("El nombre de la compañía no puede exceder 100 caracteres");
         }
         if(companiaRepository.existsByNombre(compania.getNombre())) {
-            throw new InvalidStateException("Ya existe una compañía con el mismo nombre");
+            throw new ValidationException("Ya existe una compañía con el mismo nombre");
         }
     }
 }

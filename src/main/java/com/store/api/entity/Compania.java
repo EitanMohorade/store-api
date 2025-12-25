@@ -6,6 +6,10 @@ import jakarta.persistence.*;
  * Entidad que representa una compañía o empresa.
  * 
  * Las compañías son las que produjeron o distribuyen los productos en el sistema de inventario.
+ * 
+ * @param id Identificador único de la compañía
+ * @param nombre Nombre de la compañía o empresa
+ * 
  */
 @Entity
 public class Compania {
