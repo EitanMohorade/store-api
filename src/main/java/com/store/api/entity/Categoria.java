@@ -7,6 +7,11 @@ import jakarta.persistence.*;
  * 
  * Las categorías agrupan productos relacionados para facilitar la organización
  * y búsqueda en el sistema de inventario.
+ * 
+ * @param id Identificador único de la categoría
+ * @param nombre Nombre de la categoría
+ * @param descripcion Descripción de la categoría
+ * 
  */
 @Entity
 public class Categoria {

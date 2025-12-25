@@ -6,6 +6,10 @@ import jakarta.persistence.*;
  * Entidad que representa un usuario administrador del sistema.
  * 
  * Los administradores tienen acceso para modificar, eliminar y gestionar todo en la aplicación.
+ * 
+ * @param id Identificador único del administrador
+ * @param nombre Nombre de usuario del administrador
+ * @param password Contraseña encriptada del administrador
  */
 @Entity
 public class Admin {
