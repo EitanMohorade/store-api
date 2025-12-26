@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.store.api.entity.Admin;
+import com.store.api.exception.ResourceNotFoundException;
 import com.store.api.exception.ValidationException;
 import com.store.api.repository.AdminRepository;
 
@@ -38,6 +39,19 @@ public class AdminService {
 
         admin.setId(id);
         return adminRepository.save(admin);
+    }
+
+    /**
+     * Elimina un administrador por su ID.
+     * 
+     * @param id ID del administrador a eliminar
+     * @throws ResourceNotFoundException si el administrador no existe
+     */
+    public void delete(Long id) {
+        if (!adminRepository.existsById(id)) {
+            throw new ResourceNotFoundException();
+        }
+        adminRepository.deleteById(id);
     }
 
     /**
