@@ -2,6 +2,7 @@ package com.store.api.dto.admin;
 
 /**
  * DTO para la actualización de un administrador.
+ * tiene getters y setters.
 */
 public class AdminUpdateDTO {
     private String nombre;

@@ -2,6 +2,7 @@ package com.store.api.dto.admin;
 
 /**
  * DTO para la creación de un administrador.
+ * tiene getters y setters.
 */
 public class AdminCreateDTO {
     

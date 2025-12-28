@@ -2,6 +2,7 @@ package com.store.api.dto.admin;
 
 /**
  * DTO para la respuesta de un administrador.
+ * tiene solo getters. 
 */
 public class AdminResponseDTO {
     private Long id;
@@ -11,7 +12,7 @@ public class AdminResponseDTO {
     public AdminResponseDTO() {}
 
     /**
-     * Constructor con parámetros.
+     * Respuesta DTO de un administrador sin contraseña.
      * 
      * @param id ID del administrador
      * @param nombre Nombre del administrador
