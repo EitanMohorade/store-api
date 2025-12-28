@@ -1,5 +1,6 @@
 package com.store.api.service;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.store.api.entity.Admin;
@@ -11,23 +12,23 @@ import com.store.api.repository.AdminRepository;
 public class AdminService {
         
     private final AdminRepository adminRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AdminService(AdminRepository adminRepository) {
+    public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEncoder) {
         this.adminRepository = adminRepository;
+        this.passwordEncoder = passwordEncoder;
     }
     
-    /**
-     * Crea un nuevo administrador después de validarlo.
-     * 
-     * @param admin Administrador a crear
-     * @return Administrador creado con ID generado
-     * @throws ValidationException si el administrador no cumple validaciones
-     */
-    public  Admin create(Admin admin) {
+    public Admin create(Admin admin) {
         validate(admin);
+
+        admin.setPassword(
+            passwordEncoder.encode(admin.getPassword())
+        );
 
         return adminRepository.save(admin);
     }
+
 
     /**
      * Actualiza un administrador existente.
@@ -74,4 +75,5 @@ public class AdminService {
             throw new ValidationException("Ya existe un administrador con el mismo nombre");
         }
     }
+
 }

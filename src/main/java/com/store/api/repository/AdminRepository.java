@@ -9,4 +9,7 @@ import com.store.api.entity.Admin;
 public interface AdminRepository extends JpaRepository<Admin, Long> {
 
     boolean existsByNombre(String nombre);
+
+    boolean existsByNombreAndIdNot(String nombre, Long id);
+
 }
