@@ -2,11 +2,9 @@ package com.store.api.service;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.store.api.entity.Compania;
-import com.store.api.exception.InvalidStateException;
 import com.store.api.exception.ResourceNotFoundException;
 import com.store.api.exception.ValidationException;
 import com.store.api.repository.CompaniaRepository;
@@ -20,9 +18,12 @@ import com.store.api.repository.CompaniaRepository;
  */
 @Service
 public class CompaniaService {
-    @Autowired
 
-    private CompaniaRepository companiaRepository;
+    private final CompaniaRepository companiaRepository;
+
+    public CompaniaService(CompaniaRepository companiaRepository) {
+        this.companiaRepository = companiaRepository;
+    }
 
     /**
      * Crea una nueva compañía después de validarla.

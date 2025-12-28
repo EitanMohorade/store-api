@@ -1,6 +1,5 @@
 package com.store.api.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.store.api.entity.Categoria;
@@ -20,9 +19,12 @@ import java.util.List;
  */
 @Service
 public class CategoriaService {
-    @Autowired
+    
+    private final CategoriaRepository categoriaRepository;
 
-    private CategoriaRepository categoriaRepository;
+    public CategoriaService(CategoriaRepository categoriaRepository) {
+        this.categoriaRepository = categoriaRepository;
+    }
 
     /**
      * Crea una nueva categoría después de validarla.

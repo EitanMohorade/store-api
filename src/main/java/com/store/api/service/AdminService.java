@@ -1,6 +1,5 @@
 package com.store.api.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.store.api.entity.Admin;
@@ -10,8 +9,12 @@ import com.store.api.repository.AdminRepository;
 
 @Service
 public class AdminService {
-    @Autowired
-    private AdminRepository adminRepository;
+        
+    private final AdminRepository adminRepository;
+
+    public AdminService(AdminRepository adminRepository) {
+        this.adminRepository = adminRepository;
+    }
     
     /**
      * Crea un nuevo administrador después de validarlo.

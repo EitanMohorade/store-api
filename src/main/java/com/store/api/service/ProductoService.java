@@ -1,7 +1,5 @@
 package com.store.api.service;
 
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,9 +19,12 @@ import com.store.api.exception.ValidationException;
  */
 @Service
 public class ProductoService {
-    @Autowired
+    
+    private final ProductoRepository productoRepository;
 
-    private ProductoRepository productoRepositorio;
+    public ProductoService(ProductoRepository productoRepository) {
+        this.productoRepository = productoRepository;
+    }
 
     /**
      * Crea un nuevo producto después de validarlo.
@@ -35,7 +36,7 @@ public class ProductoService {
      */
     public Producto create(Producto Producto) {
         validate(Producto);
-        return productoRepositorio.save(Producto);
+        return productoRepository.save(Producto);
     }
 
     /**
@@ -46,7 +47,7 @@ public class ProductoService {
      * @throws ResourceNotFoundException si el producto no existe
      */
     public Producto findById(Long id) {
-        return productoRepositorio.findById(id)
+        return productoRepository.findById(id)
                 .orElseThrow(ResourceNotFoundException::new);
     }
 
@@ -56,7 +57,7 @@ public class ProductoService {
      * @return Lista de todos los productos
      */
     public List<Producto> findAll() {
-        return productoRepositorio.findAll();
+        return productoRepository.findAll();
     }
 
     /**
@@ -83,7 +84,7 @@ public class ProductoService {
 
         validate(existing);
 
-        return productoRepositorio.save(existing);
+        return productoRepository.save(existing);
     }
 
     /**
@@ -93,10 +94,10 @@ public class ProductoService {
      * @throws ResourceNotFoundException si el producto no existe
      */
     public void delete(Long id) {
-        if (!productoRepositorio.existsById(id)) {
+        if (!productoRepository.existsById(id)) {
             throw new ResourceNotFoundException();
         }
-        productoRepositorio.deleteById(id);
+        productoRepository.deleteById(id);
     }
 
     /**
@@ -106,7 +107,7 @@ public class ProductoService {
      * @return true si el producto existe, false en caso contrario
      */
     public boolean existById(Long id) {
-        return productoRepositorio.existsById(id);
+        return productoRepository.existsById(id);
     }
 
     /**
@@ -123,7 +124,7 @@ public class ProductoService {
             throw new StockInsufficientException();
         }
         producto.setStock(nuevoStock);
-        productoRepositorio.save(producto);
+        productoRepository.save(producto);
     }
 
     /**
@@ -137,7 +138,7 @@ public class ProductoService {
         if (companiaId == null) {
             throw new ValidationException("El ID de la compañía no puede ser nulo");
         }
-        return productoRepositorio.findByCompaniaId(companiaId);
+        return productoRepository.findByCompaniaId(companiaId);
     }
 
     /**
@@ -151,7 +152,7 @@ public class ProductoService {
         if (categoriaId == null) {
             throw new ValidationException("El ID de la categoría no puede ser nulo");
         }
-        return productoRepositorio.findByCategoriaId(categoriaId);
+        return productoRepository.findByCategoriaId(categoriaId);
     }
 
     /**
@@ -162,7 +163,7 @@ public class ProductoService {
      * @return Lista de productos filtrados
      */
     public List<Producto> findByCompaniaIdAndCategoriaId(Long companiaId, Long categoriaId) {
-        return productoRepositorio.findByCompaniaIdAndCategoriaId(companiaId, categoriaId);
+        return productoRepository.findByCompaniaIdAndCategoriaId(companiaId, categoriaId);
     }
 
     /**
@@ -176,7 +177,7 @@ public class ProductoService {
         if (articulo == null || articulo.isBlank()) {
             throw new ValidationException("El término de artículo no puede estar vacío");
         }
-        return productoRepositorio.findByArticuloContainingIgnoreCase(articulo);
+        return productoRepository.findByArticuloContainingIgnoreCase(articulo);
     }
 
     /**
@@ -190,7 +191,7 @@ public class ProductoService {
         if (stock < 0) {
             throw new ValidationException("El stock no puede ser negativo");
         }
-        return productoRepositorio.findByStock(stock);
+        return productoRepository.findByStock(stock);
     }
 
     /**
@@ -208,7 +209,7 @@ public class ProductoService {
         if (minPrecio > maxPrecio) {
             throw new ValidationException("El rango de precios es inválido (min > max)");
         }
-        return productoRepositorio.findByPrecioBetween(minPrecio, maxPrecio);
+        return productoRepository.findByPrecioBetween(minPrecio, maxPrecio);
     }
 
     /**
@@ -217,7 +218,7 @@ public class ProductoService {
      * @return Cantidad total de productos
      */
     public long countTotal() {
-        return productoRepositorio.count();
+        return productoRepository.count();
     }
 
     /**
@@ -226,7 +227,7 @@ public class ProductoService {
      * @return Suma total del stock de todos los productos
      */
     public int getTotalStock() {
-        return productoRepositorio.getTotalStock();
+        return productoRepository.getTotalStock();
     }
 
     /**
@@ -235,7 +236,7 @@ public class ProductoService {
      * @return Lista de productos sin stock
      */
     public List<Producto> findOutOfStockProducts() {
-        return productoRepositorio.findByStock(0);
+        return productoRepository.findByStock(0);
     }
 
     /**
@@ -255,7 +256,7 @@ public class ProductoService {
         if (p.getArticulo() == null || p.getArticulo().isBlank()) {
             throw new ValidationException("El artículo no puede estar vacío");
         }
-        if (productoRepositorio.existsByArticulo(p.getArticulo())) {
+        if (productoRepository.existsByArticulo(p.getArticulo())) {
             throw new DuplicateResourceException("El artículo ya existe");
         }
     }

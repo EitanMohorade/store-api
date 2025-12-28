@@ -7,7 +7,6 @@ import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.store.api.entity.Venta;
@@ -15,13 +14,11 @@ import com.store.api.exception.DuplicateResourceException;
 import com.store.api.exception.ValidationException;
 import com.store.api.repository.VentaRepository;
 
-import lombok.val;
 
 @Service
 public class VentaService {
-    @Autowired
-
-    private VentaRepository ventaRepository;
+    
+    private final VentaRepository ventaRepository;
 
     public VentaService(VentaRepository ventaRepository) {
         this.ventaRepository = ventaRepository;
