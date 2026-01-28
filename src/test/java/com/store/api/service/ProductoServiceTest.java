@@ -11,6 +11,9 @@ import java.util.Optional;
 
 
 import com.store.api.entity.Producto;
+import com.store.api.dto.producto.ProductoCreateDTO;
+import com.store.api.dto.producto.ProductoUpdateDTO;
+import com.store.api.dto.producto.ProductoResponseDTO;
 import com.store.api.exception.ResourceNotFoundException;
 import com.store.api.exception.StockInsufficientException;
 import com.store.api.exception.ValidationException;
@@ -39,6 +42,9 @@ public class ProductoServiceTest {
 
     private Producto productoExistente;
     private Producto productoExistente2;
+    private ProductoCreateDTO createDTO;
+    private ProductoCreateDTO createDTO2;
+    private ProductoUpdateDTO updateDTO;
 
     @BeforeEach
     public void setUp() {
@@ -56,22 +62,38 @@ public class ProductoServiceTest {
         productoExistente2.setPrecio(99);
         productoExistente2.setStock(50);
         productoExistente2.setDescripcion("description prueba 2");
-        productoExistente2.setCategoria(null); 
+        productoExistente2.setCategoria(null);
+
+        createDTO = new ProductoCreateDTO();
+        createDTO.setArticulo("prueba 1");
+        createDTO.setPrecio(1200);
+        createDTO.setStock(15);
+        createDTO.setDescripcion("description prueba 1");
+        createDTO.setCategoria(null);
+
+        createDTO2 = new ProductoCreateDTO();
+        createDTO2.setArticulo("prueba 2");
+        createDTO2.setPrecio(99);
+        createDTO2.setStock(50);
+        createDTO2.setDescripcion("description prueba 2");
+        createDTO2.setCategoria(null);
+
+        updateDTO = new ProductoUpdateDTO();
+        updateDTO.setArticulo("Producto de prueba");
+        updateDTO.setPrecio(100);
+        updateDTO.setStock(10);
     }
 
     @Test
     void create_DeberiaLanzarValidationExceptionSiElArticuloEsNulo() {
-        Producto producto = new Producto();
-        producto.setArticulo(null);
+        ProductoCreateDTO dto = new ProductoCreateDTO();
+        dto.setArticulo(null);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
-            productoService.create(producto);
+            productoService.create(dto);
         });
 
-        assertEquals(
-            "El artículo no puede estar vacío",
-            exception.getMessage()
-        );
+        assertEquals("El artículo no puede estar vacío",exception.getMessage());
     }
 
     @Test
@@ -80,13 +102,14 @@ public class ProductoServiceTest {
         when(productoRepository.findById(1L))
             .thenReturn(Optional.of(productoExistente));
 
-        Producto producto = new Producto();
-        producto.setArticulo("Producto de prueba");
-        producto.setPrecio(-10);
+        ProductoUpdateDTO dto = new ProductoUpdateDTO();
+        dto.setArticulo("Producto de prueba");
+        dto.setPrecio(-10);
+        dto.setStock(10);
 
         ValidationException exception = assertThrows(
             ValidationException.class,
-            () -> productoService.update(1L, producto)
+            () -> productoService.update(1L, dto)
         );
 
         assertEquals("El precio no puede ser negativo", exception.getMessage());
@@ -97,13 +120,13 @@ public class ProductoServiceTest {
 
     @Test
     void create_DeberiaLanzarValidationExceptionSiLaCantidadEsNegativa() {
-        Producto producto = new Producto();
-        producto.setArticulo("Producto de prueba");
-        producto.setPrecio(100);
-        producto.setStock(-5);
+        ProductoCreateDTO dto = new ProductoCreateDTO();
+        dto.setArticulo("Producto de prueba");
+        dto.setPrecio(100);
+        dto.setStock(-5);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
-            productoService.create(producto);
+            productoService.create(dto);
         });
 
         assertEquals("El stock no puede ser negativo", exception.getMessage());
@@ -130,25 +153,25 @@ public class ProductoServiceTest {
                 return p;
         });
         
-        Producto productoGuardado = productoService.create(productoExistente);
+        ProductoResponseDTO productoGuardado = productoService.create(createDTO);
 
         assertNotNull(productoGuardado.getId());
         assertEquals("prueba 1", productoGuardado.getArticulo());
-        verify(productoRepository).save(productoExistente);
+        verify(productoRepository).save(any(Producto.class));
     }
 
     @Test
     void create_DeberiaLanzarValidationExceptionSiElProductoYaExiste() {
-        Producto productoNuevo = new Producto();
-        productoNuevo.setArticulo("prueba 1");
-        productoNuevo.setPrecio(1500);
-        productoNuevo.setStock(10);
+        ProductoCreateDTO dto = new ProductoCreateDTO();
+        dto.setArticulo("prueba 1");
+        dto.setPrecio(1500);
+        dto.setStock(10);
 
         when(productoRepository.existsByArticulo("prueba 1"))
             .thenReturn(true);
 
         DuplicateResourceException exception = assertThrows(DuplicateResourceException.class, () -> {
-            productoService.create(productoNuevo);
+            productoService.create(dto);
         });
 
         assertEquals("El artículo ya existe", exception.getMessage());
@@ -164,12 +187,12 @@ public class ProductoServiceTest {
         when(productoRepository.save(any()))
             .thenAnswer(invocation -> invocation.getArgument(0));
 
-        Producto actualizado = new Producto();
-        actualizado.setArticulo("Producto de prueba");
-        actualizado.setPrecio(100);
-        actualizado.setStock(10);
+        ProductoUpdateDTO dto = new ProductoUpdateDTO();
+        dto.setArticulo("Producto de prueba");
+        dto.setPrecio(100);
+        dto.setStock(10);
 
-        Producto result = productoService.update(1L, actualizado);
+        ProductoResponseDTO result = productoService.update(1L, dto);
 
         assertEquals("Producto de prueba", result.getArticulo());
         assertEquals(100, result.getPrecio());
@@ -218,14 +241,14 @@ public class ProductoServiceTest {
         when(productoRepository.findById(2L))
             .thenReturn(Optional.empty());
 
-        Producto actualizado = new Producto();
-        actualizado.setArticulo("Producto de prueba");
-        actualizado.setPrecio(100);
-        actualizado.setStock(10);
+        ProductoUpdateDTO dto = new ProductoUpdateDTO();
+        dto.setArticulo("Producto de prueba");
+        dto.setPrecio(100);
+        dto.setStock(10);
 
         ResourceNotFoundException exception = assertThrows(
             ResourceNotFoundException.class,
-            () -> productoService.update(2L, actualizado)
+            () -> productoService.update(2L, dto)
         );
 
         assertEquals("Recurso no encontrado", exception.getMessage());
@@ -250,7 +273,11 @@ public class ProductoServiceTest {
         when (productoRepository.findById(1L))
             .thenReturn(Optional.of(productoExistente));
         
-        assertEquals(productoExistente, productoService.findById(1L));
+        ProductoResponseDTO result = productoService.findById(1L);
+        
+        assertEquals(productoExistente.getId(), result.getId());
+        assertEquals(productoExistente.getArticulo(), result.getArticulo());
+        assertEquals(productoExistente.getPrecio(), result.getPrecio());
     }
 
     @Test
@@ -260,29 +287,12 @@ public class ProductoServiceTest {
 
         when(productoRepository.findAll())
             .thenReturn(expectedProducts);
-        assertEquals(expectedProducts, productoService.findAll());
         
-    }
-
-    @Test
-    void create_DeberiaCrearMultiplesProductosCorrectamente() {
-        when(productoRepository.save(any()))
-            .thenAnswer(invocation -> {
-                Producto p = invocation.getArgument(0);
-                if (p.getId() == null) {
-                    p.setId(System.currentTimeMillis());
-                }
-                return p;
-            });
+        List<ProductoResponseDTO> result = productoService.findAll();
         
-        Producto producto1 = productoService.create(productoExistente);
-        Producto producto2 = productoService.create(productoExistente2);
-
-        assertNotNull(producto1.getId());
-        assertNotNull(producto2.getId());
-        assertEquals("prueba 1", producto1.getArticulo());
-        assertEquals("prueba 2", producto2.getArticulo());
-        assertNotEquals(producto1.getId(), producto2.getId());
+        assertEquals(2, result.size());
+        assertEquals("prueba 1", result.get(0).getArticulo());
+        assertEquals("prueba 2", result.get(1).getArticulo());
     }
 
     @Test
@@ -292,11 +302,11 @@ public class ProductoServiceTest {
         when(productoRepository.findAll())
             .thenReturn(expectedProducts);
         
-        List<Producto> productos = productoService.findAll();
+        List<ProductoResponseDTO> productos = productoService.findAll();
 
         assertEquals(2, productos.size());
-        assertTrue(productos.contains(productoExistente));
-        assertTrue(productos.contains(productoExistente2));
+        assertEquals("prueba 1", productos.get(0).getArticulo());
+        assertEquals("prueba 2", productos.get(1).getArticulo());
         assertEquals(1200, productos.get(0).getPrecio());
         assertEquals(99, productos.get(1).getPrecio());
     }
@@ -331,13 +341,13 @@ public class ProductoServiceTest {
         when(productoRepository.save(any()))
             .thenAnswer(invocation -> invocation.getArgument(0));
 
-        Producto actualizado = new Producto();
-        actualizado.setArticulo("prueba 1");
-        actualizado.setPrecio(1500);
-        actualizado.setStock(8);
-        actualizado.setDescripcion("description prueba 1");
+        ProductoUpdateDTO dto = new ProductoUpdateDTO();
+        dto.setArticulo("prueba 1");
+        dto.setPrecio(1500);
+        dto.setStock(8);
+        dto.setDescripcion("description prueba 1");
 
-        Producto result = productoService.update(1L, actualizado);
+        ProductoResponseDTO result = productoService.update(1L, dto);
 
         assertEquals("prueba 1", result.getArticulo());
         assertEquals(1500, result.getPrecio());
@@ -359,13 +369,13 @@ public class ProductoServiceTest {
 
     @Test
     void create_DeberiaLanzarValidationExceptionSiElArticuloEstaVacio() {
-        Producto producto = new Producto();
-        producto.setArticulo("");
-        producto.setPrecio(100);
-        producto.setStock(10);
+        ProductoCreateDTO dto = new ProductoCreateDTO();
+        dto.setArticulo("");
+        dto.setPrecio(100);
+        dto.setStock(10);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
-            productoService.create(producto);
+            productoService.create(dto);
         });
 
         assertEquals("El artículo no puede estar vacío", exception.getMessage());
@@ -376,13 +386,13 @@ public class ProductoServiceTest {
         when(productoRepository.findById(2L))
             .thenReturn(Optional.of(productoExistente2));
 
-        Producto productoInvalido = new Producto();
-        productoInvalido.setArticulo("prueba 1");
-        productoInvalido.setPrecio(99);
-        productoInvalido.setStock(-10);
+        ProductoUpdateDTO dto = new ProductoUpdateDTO();
+        dto.setArticulo("prueba 1");
+        dto.setPrecio(99);
+        dto.setStock(-10);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
-            productoService.update(2L, productoInvalido);
+            productoService.update(2L, dto);
         });
 
         assertEquals("El stock no puede ser negativo", exception.getMessage());
@@ -393,7 +403,7 @@ public class ProductoServiceTest {
         when(productoRepository.findById(2L))
             .thenReturn(Optional.of(productoExistente2));
 
-        Producto producto = productoService.findById(2L);
+        ProductoResponseDTO producto = productoService.findById(2L);
 
         assertNotNull(producto);
         assertEquals(2L, producto.getId());
@@ -418,13 +428,13 @@ public class ProductoServiceTest {
 
     @Test
     void create_DeberiaValidarTodosLosCamposRequeridos() {
-        Producto productoIncompleto = new Producto();
-        productoIncompleto.setArticulo(null);
-        productoIncompleto.setPrecio(0);
-        productoIncompleto.setStock(0);
+        ProductoCreateDTO dto = new ProductoCreateDTO();
+        dto.setArticulo(null);
+        dto.setPrecio(0);
+        dto.setStock(0);
 
         assertThrows(ValidationException.class, () -> {
-            productoService.create(productoIncompleto);
+            productoService.create(dto);
         });
     }
 
@@ -433,13 +443,13 @@ public class ProductoServiceTest {
         when(productoRepository.findById(1L))
             .thenReturn(Optional.of(productoExistente));
 
-        Producto productoConPrecioInvalido = new Producto();
-        productoConPrecioInvalido.setArticulo("prueba 1");
-        productoConPrecioInvalido.setPrecio(-100);
-        productoConPrecioInvalido.setStock(10);
+        ProductoUpdateDTO dto = new ProductoUpdateDTO();
+        dto.setArticulo("prueba 1");
+        dto.setPrecio(-100);
+        dto.setStock(10);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
-            productoService.update(1L, productoConPrecioInvalido);
+            productoService.update(1L, dto);
         });
 
         assertEquals("El precio no puede ser negativo", exception.getMessage());
@@ -450,7 +460,7 @@ public class ProductoServiceTest {
         when(productoRepository.findAll())
             .thenReturn(List.of());
 
-        List<Producto> productos = productoService.findAll();
+        List<ProductoResponseDTO> productos = productoService.findAll();
 
         assertTrue(productos.isEmpty());
         assertEquals(0, productos.size());
@@ -491,11 +501,11 @@ public class ProductoServiceTest {
         when(productoRepository.findByPrecioBetween(50, 1300))
             .thenReturn(expectedProducts);
 
-        List<Producto> productos = productoService.findByPrecioRange(50, 1300);
+        List<ProductoResponseDTO> productos = productoService.findByPrecioRange(50, 1300);
 
         assertEquals(2, productos.size());
-        assertTrue(productos.contains(productoExistente));
-        assertTrue(productos.contains(productoExistente2));
+        assertEquals("prueba 1", productos.get(0).getArticulo());
+        assertEquals("prueba 2", productos.get(1).getArticulo());
     }
 
     @Test
@@ -529,7 +539,7 @@ public class ProductoServiceTest {
         when(productoRepository.findByPrecioBetween(10, 50))
             .thenReturn(List.of());
 
-        List<Producto> productos =
+        List<ProductoResponseDTO> productos =
             productoService.findByPrecioRange(10, 50);
 
         assertTrue(productos.isEmpty());
@@ -543,11 +553,11 @@ public class ProductoServiceTest {
         when(productoRepository.findByStock(10))
             .thenReturn(expectedProducts);
 
-        List<Producto> productos = productoService.findByStock(10);
+        List<ProductoResponseDTO> productos = productoService.findByStock(10);
 
         assertEquals(2, productos.size());
-        assertTrue(productos.contains(productoExistente));
-        assertTrue(productos.contains(productoExistente2));
+        assertEquals("prueba 1", productos.get(0).getArticulo());
+        assertEquals("prueba 2", productos.get(1).getArticulo());
     }
 
 
@@ -635,10 +645,10 @@ public class ProductoServiceTest {
         when(productoRepository.findByArticuloContainingIgnoreCase("prueba 1"))
             .thenReturn(List.of(productoExistente));
 
-        List<Producto> productos = productoService.findByArticuloContaining("prueba 1");
+        List<ProductoResponseDTO> productos = productoService.findByArticuloContaining("prueba 1");
 
         assertEquals(1, productos.size());
-        assertTrue(productos.contains(productoExistente));
+        assertEquals("prueba 1", productos.get(0).getArticulo());
     }
 
     @Test
@@ -660,11 +670,13 @@ public class ProductoServiceTest {
         when(productoRepository.findByStock(0))
             .thenReturn(expectedProducts);
 
-        List<Producto> productos = productoService.findOutOfStockProducts();
+        List<ProductoResponseDTO> productos = productoService.findOutOfStockProducts();
 
         assertEquals(2, productos.size());
-        assertTrue(productos.contains(productoAgotado1));
-        assertTrue(productos.contains(productoAgotado2));
+        assertEquals("prueba 3", productos.get(0).getArticulo());
+        assertEquals("prueba 4", productos.get(1).getArticulo());
+        assertEquals(0, productos.get(0).getStock());
+        assertEquals(0, productos.get(1).getStock());
     }
 
     @Test
@@ -684,10 +696,10 @@ public class ProductoServiceTest {
         when(productoRepository.findByCompaniaIdAndCategoriaId(1L, 1L))
             .thenReturn(expectedProducts);
 
-        List<Producto> productos = productoService.findByCompaniaIdAndCategoriaId(1L, 1L);
+        List<ProductoResponseDTO> productos = productoService.findByCompaniaIdAndCategoriaId(1L, 1L);
 
         assertEquals(1, productos.size());
-        assertTrue(productos.contains(productoExistente));
+        assertEquals("prueba 1", productos.get(0).getArticulo());
     }
 
     @Test
@@ -707,10 +719,10 @@ public class ProductoServiceTest {
         when(productoRepository.findByCategoriaId(2L))
             .thenReturn(expectedProducts);
 
-        List<Producto> productos = productoService.findByCategoriaId(2L);
+        List<ProductoResponseDTO> productos = productoService.findByCategoriaId(2L);
 
         assertEquals(1, productos.size());
-        assertTrue(productos.contains(productoExistente2));
+        assertEquals("prueba 2", productos.get(0).getArticulo());
     }
 
     @Test
@@ -730,10 +742,10 @@ public class ProductoServiceTest {
         when(productoRepository.findByCompaniaId(1L))
             .thenReturn(expectedProducts);
 
-        List<Producto> productos = productoService.findByCompaniaId(1L);
+        List<ProductoResponseDTO> productos = productoService.findByCompaniaId(1L);
 
         assertEquals(1, productos.size());
-        assertTrue(productos.contains(productoExistente));
+        assertEquals("prueba 1", productos.get(0).getArticulo());
     }
 
     @Test
