@@ -62,6 +62,7 @@ public class AdminService {
      * @param dto AdminUpdateDTO con los datos a actualizar
      * @return AdminResponseDTO el cual no contiene la contraseña.
      * @throws ResourceNotFoundException si el administrador no existe
+     * @throws ValidationException si los datos son inválidos
      */
     public AdminResponseDTO update(Long id, AdminUpdateDTO dto) {
 
