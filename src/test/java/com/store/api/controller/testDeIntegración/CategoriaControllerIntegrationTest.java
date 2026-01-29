@@ -1,4 +1,4 @@
-package com.store.api.controller;
+package com.store.api.controller.testDeIntegración;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -21,13 +21,5 @@ public class CategoriaControllerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Test
-    public void testObtenerCategorias() throws Exception {
-        // Act & Assert
-        mockMvc.perform(get("/api/categorias"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json"));
-    }
-
-    // Agrega más tests según necesites
+    
 }

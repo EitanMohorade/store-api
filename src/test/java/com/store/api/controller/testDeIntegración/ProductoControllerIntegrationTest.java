@@ -1,4 +1,4 @@
-package com.store.api.controller;
+package com.store.api.controller.testDeIntegración;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
