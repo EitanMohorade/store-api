@@ -1,81 +1,36 @@
-# backend-dmtoolkit-api
+# Store API - Controlador de Stock
 
-Proyecto minimalista de una API REST con Spring Boot — punto de partida para un
-controlador de stock (productos, categorías y stock).
+API REST con Spring Boot para gestión de inventario, productos, categorías y ventas.
 
-**Estado:** scaffold inicial (controladores, servicios, entidades de ejemplo).
+## Stack
+- Java 17+ | Spring Boot | PostgreSQL
 
-**Stack técnico**
-- Java 17+
-- Spring Boot
-- PostgreSQL (base de datos)
-
-**Requisitos**
-- Maven (recomendado) o Docker (alternativa sin instalar Maven)
-
-**Inicio rápido**
-
-- Compilar y empaquetar:
-
-	`mvn -q package`
-
-- Ejecutar en desarrollo:
-
-	`mvn -q spring-boot:run`
-
-- Ejecutar JAR producido:
-
-	`java -jar target/store-api-0.0.1-SNAPSHOT.jar`
-
-**Estructura principal**
-
-```
-src/main/java/com/store/api
-├── StoreApiApplication.java
-├── controller/    # endpoints REST (Producto, Categoria, Admin, Compania, Venta)
-├── exception/     # excepciones personalizadas
-├── service/       # lógica de negocio
-├── repository/    # acceso a datos (placeholders)
-└── entity/        # entidades (Producto, Categoria, Admin, Compania, Venta)
+## Inicio Rápido
+```bash
+mvn spring-boot:run
 ```
 
-Luego, si quieren revisar, están los test del proyecto:
+## Estructura y Lógica
 
 ```
-src/test/java/com/store/api
-├── StoreApiApplicationTests.java
-├── controller/    
-├── exception/     
-├── service/       
-├── repository/    
-└── entity/        
+src/main/java/com/store/api/
+├── controller/   → Endpoints REST (productos, categorías, ventas, stock)
+├── service/      → Lógica de negocio y validaciones
+├── repository/   → Acceso a base de datos (JPA)
+├── entity/       → Modelos (Producto, Categoria, Compania, Admin, Venta)
+├── dto/          → Objetos de transferencia para requests/responses
+├── exception/    → Manejo centralizado de errores
+└── config/       → Configuración de seguridad y aplicación
 ```
 
-**Endpoints de ejemplo**
-- `GET /api/productos`  → lista de productos (ejemplo)
-- `GET /api/categorias` → lista de categorías (ejemplo)
+**Flujo típico:** Controller → Service → Repository → Database
 
+**Testing:** Toda la funcionalidad está cubierta con tests unitarios e integración en `src/test/`
 
-Puerto por defecto: `8080` (configurable en `src/main/resources/application.properties`).
+## Endpoints Principales
+- `GET/POST /api/productos` - Gestión de productos
+- `GET/POST /api/categorias` - Gestión de categorías
+- `POST /api/ventas` - Registro de ventas
+- `GET /api/stock` - Consulta de inventario
 
-
-**Configuración de base de datos con .env**
-
-Podes usar el archivo `.env` para definir el usuario, contraseña, URL de la base de datos, etc.
-
-Ejemplo de `.env`:
-
-```
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=milocal
-DB_USER=postgres
-DB_PASSWORD=miClaveSegura
-
-SPRING_JPA_DDL=update
-SPRING_SHOW_SQL=true
-SPRING_FORMAT_SQL=true
-```
-
-**Licencia**
-- Ver `LICENSE` en la raíz del repositorio.
+Puerto: `8080` (configurable en `application.properties`)
