@@ -2,6 +2,9 @@ package com.store.api.service;
 
 import org.springframework.stereotype.Service;
 
+import com.store.api.dto.categoria.CategoriaCreateDTO;
+import com.store.api.dto.categoria.CategoriaResponseDTO;
+import com.store.api.dto.categoria.CategoriaUpdateDTO;
 import com.store.api.entity.Categoria;
 import com.store.api.exception.DuplicateResourceException;
 import com.store.api.exception.ResourceNotFoundException;
@@ -12,10 +15,9 @@ import java.util.List;
 
 /**
  * Servicio de negocio para la entidad Categoría.
- * 
- * Proporciona operaciones de lógica de negocio para la gestión de categorías,
- * incluyendo validación, búsqueda y manipulación de datos.
- * 
+ *
+ * Opera con DTOs de entrada/salida y encapsula la validación,
+ * la persistencia y el mapeo entre entidad y DTO.
  */
 @Service
 public class CategoriaService {
@@ -27,21 +29,23 @@ public class CategoriaService {
     }
 
     /**
-     * Crea una nueva categoría después de validarla.
-     * 
-     * @param categoria Categoría a crear
-     * @return Categoría creada con ID generado
-     * @throws ValidationException si la categoría no cumple validaciones
+     * Crea una nueva categoría desde el DTO de creación y devuelve el DTO de respuesta.
+     *
+     * @param dto CategoriaCreateDTO datos de la categoría a crear
+     * @return categoría creada con ID generado
+     * @throws ValidationException si no cumple validaciones
      */
-    public Categoria create(Categoria categoria) {
+    public CategoriaResponseDTO create(CategoriaCreateDTO dto) {
+        Categoria categoria = toEntity(dto);
         validate(categoria);
-        
-        return categoriaRepository.save(categoria);
+
+        Categoria guardada = categoriaRepository.save(categoria);
+        return toResponseDTO(guardada);
     }
 
     /**
      * Elimina una categoría por su ID.
-     * 
+     *
      * @param id ID de la categoría a eliminar
      * @throws ResourceNotFoundException si la categoría no existe
      */
@@ -53,52 +57,54 @@ public class CategoriaService {
     }
 
     /**
-     * Encuentra una categoría por su ID.
-     * 
+     * Busca una categoría por ID y devuelve el DTO de respuesta.
+     *
      * @param id ID de la categoría a buscar
-     * @return Categoría encontrada
+     * @return categoría encontrada
      * @throws ResourceNotFoundException si la categoría no existe
      */
-    public Categoria findById(Long id) {
-        return categoriaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException());
+    public CategoriaResponseDTO findById(Long id) {
+        return toResponseDTO(getEntityById(id));
     }
 
     /**
-     * Recupera todas las categorías.
-     * 
-     * @return Lista de todas las categorías
+     * Recupera todas las categorías y devuelve sus DTOs de respuesta.
+     *
+     * @return lista de categorías
      */
-    public List<Categoria> findAll() {
-        return categoriaRepository.findAll();
+    public List<CategoriaResponseDTO> findAll() {
+        return categoriaRepository.findAll()
+                .stream()
+                .map(this::toResponseDTO)
+                .toList();
     }
 
     /**
-     * Actualiza una categoría existente.
-     * 
+     * Actualiza una categoría existente usando el DTO de actualización.
+     *
      * @param id ID de la categoría a actualizar
-     * @param categoria Categoría con datos actualizados
-     * @return Categoría actualizada
+     * @param dto CategoriaUpdateDTO datos a actualizar
+     * @return categoría actualizada
      * @throws ResourceNotFoundException si la categoría no existe
-     * @throws ValidationException si la categoría no cumple validaciones
+     * @throws ValidationException si no cumple validaciones
      */
-    public Categoria update(Long id, Categoria categoria) {
-        Categoria existente = findById(id);
+    public CategoriaResponseDTO update(Long id, CategoriaUpdateDTO dto) {
+        Categoria existente = getEntityById(id);
 
-        existente.setNombre(categoria.getNombre());
-        existente.setDescripcion(categoria.getDescripcion());
+        existente.setNombre(dto.getNombre());
+        existente.setDescripcion(dto.getDescripcion());
         validate(existente);
 
-        return categoriaRepository.save(existente);
+        Categoria guardada = categoriaRepository.save(existente);
+        return toResponseDTO(guardada);
     }
 
     /**
      * Valida una categoría antes de su creación o actualización.
-     * 
-     * @param categoria
+     *
+     * @param categoria Categoria entidad a validar
      * @throws ValidationException si el nombre es nulo, vacío o excede 100 caracteres
      * @throws DuplicateResourceException si ya existe una categoría con el mismo nombre
-     * 
      */
     private void validate(Categoria categoria) {
         if (categoria.getNombre() == null || categoria.getNombre().isBlank()) {
@@ -110,5 +116,25 @@ public class CategoriaService {
         if (categoriaRepository.existsByNombre(categoria.getNombre())) {
             throw new DuplicateResourceException("Ya existe una categoría con el mismo nombre");
         }
+    }
+
+    private Categoria getEntityById(Long id) {
+        return categoriaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException());
+    }
+
+    private Categoria toEntity(CategoriaCreateDTO dto) {
+        Categoria categoria = new Categoria();
+        categoria.setNombre(dto.getNombre());
+        categoria.setDescripcion(dto.getDescripcion());
+        return categoria;
+    }
+
+    private CategoriaResponseDTO toResponseDTO(Categoria categoria) {
+        CategoriaResponseDTO dto = new CategoriaResponseDTO();
+        dto.setId(categoria.getId());
+        dto.setNombre(categoria.getNombre());
+        dto.setDescripcion(categoria.getDescripcion());
+        return dto;
     }
 }
