@@ -1,6 +1,5 @@
 package com.store.api.controller;
 
-
-public class VentaController {
+public class CompaniaController {
     
 }
