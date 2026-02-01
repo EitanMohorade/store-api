@@ -12,4 +12,6 @@ public interface AdminRepository extends JpaRepository<Admin, Long> {
 
     boolean existsByNombreAndIdNot(String nombre, Long id);
 
+    Optional<Admin> findByNombre(String nombre);
+
 }
