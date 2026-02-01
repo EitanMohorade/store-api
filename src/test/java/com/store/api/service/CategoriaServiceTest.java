@@ -7,16 +7,19 @@ import static org.mockito.Mockito.*;
 import java.util.List;
 import java.util.Optional;
 
+import com.store.api.dto.categoria.CategoriaCreateDTO;
+import com.store.api.dto.categoria.CategoriaResponseDTO;
+import com.store.api.dto.categoria.CategoriaUpdateDTO;
 import com.store.api.entity.Categoria;
 import com.store.api.exception.DuplicateResourceException;
 import com.store.api.exception.ResourceNotFoundException;
+import com.store.api.exception.ValidationException;
 import com.store.api.repository.CategoriaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -45,22 +48,25 @@ public class CategoriaServiceTest {
 
     @Test
     void create_DeberiaCrearCategoriaCorrectamente() {
+        CategoriaCreateDTO dto = new CategoriaCreateDTO();
+        dto.setNombre("Categoria Test");
+
         when(categoriaRepository.save(any())).thenReturn(categoria);
 
-        Categoria creada = categoriaService.create(categoria);
+        CategoriaResponseDTO creada = categoriaService.create(dto);
 
         assertNotNull(creada);
         assertEquals("Categoria Test", creada.getNombre());
-        verify(categoriaRepository).save(categoria);
+        verify(categoriaRepository).save(any(Categoria.class));
     }
 
     @Test
     void create_DeberiaLanzarValidationExceptionSiCategoriaTieneNombreVacio() {
-        Categoria categoriaInvalida = new Categoria();
-        categoriaInvalida.setNombre("  ");
+        CategoriaCreateDTO dto = new CategoriaCreateDTO();
+        dto.setNombre("  ");
 
-        Exception exception = assertThrows(Exception.class, () -> {
-            categoriaService.create(categoriaInvalida);
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
+            categoriaService.create(dto);
         });
 
         assertEquals("El nombre de la categoría no puede estar vacío", exception.getMessage());
@@ -68,11 +74,11 @@ public class CategoriaServiceTest {
 
     @Test
     void create_DeberiaLanzarValidationExceptionSiCategoriaTieneNombreNull() {
-        Categoria categoriaInvalida = new Categoria();
-        categoriaInvalida.setNombre(null);
+        CategoriaCreateDTO dto = new CategoriaCreateDTO();
+        dto.setNombre(null);
 
-        Exception exception = assertThrows(Exception.class, () -> {
-            categoriaService.create(categoriaInvalida);
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
+            categoriaService.create(dto);
         });
 
         assertEquals("El nombre de la categoría no puede estar vacío", exception.getMessage());
@@ -80,11 +86,11 @@ public class CategoriaServiceTest {
 
     @Test
     void create_DeberiaLanzarValidationExceptionSiCategoriaTieneNombreMuyLargo() {
-        Categoria categoriaInvalida = new Categoria();
-        categoriaInvalida.setNombre("A".repeat(101));
+        CategoriaCreateDTO dto = new CategoriaCreateDTO();
+        dto.setNombre("A".repeat(101));
 
-        Exception exception = assertThrows(Exception.class, () -> {
-            categoriaService.create(categoriaInvalida);
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
+            categoriaService.create(dto);
         });
 
         assertEquals("El nombre de la categoría no puede exceder 100 caracteres", exception.getMessage());
@@ -92,13 +98,13 @@ public class CategoriaServiceTest {
 
     @Test
     void create_DeberiaLanzarDuplicateResourceExceptionSiCategoriaYaExiste() {
-        Categoria categoriaInvalida = new Categoria();
-        categoriaInvalida.setNombre("Categoria Test");
+        CategoriaCreateDTO dto = new CategoriaCreateDTO();
+        dto.setNombre("Categoria Test");
 
         when(categoriaRepository.existsByNombre("Categoria Test")).thenReturn(true);
 
         DuplicateResourceException exception = assertThrows(DuplicateResourceException.class, () -> {
-            categoriaService.create(categoriaInvalida);
+            categoriaService.create(dto);
         });
 
         assertEquals("Ya existe una categoría con el mismo nombre", exception.getMessage());
@@ -133,7 +139,7 @@ public class CategoriaServiceTest {
         Long categoriaId = 1L;
         when(categoriaRepository.findById(categoriaId)).thenReturn(java.util.Optional.of(categoria));
 
-        Categoria encontrada = categoriaService.findById(categoriaId);
+        CategoriaResponseDTO encontrada = categoriaService.findById(categoriaId);
 
         assertNotNull(encontrada);
         assertEquals("Categoria Test", encontrada.getNombre());
@@ -156,14 +162,19 @@ public class CategoriaServiceTest {
     @Test
     void update_DeberiaActualizarCategoriaExistente() {
         Long categoriaId = 1L;
-        Categoria categoriaActualizada = new Categoria();
-        categoriaActualizada.setNombre("Categoria Actualizada");
-        categoriaActualizada.setDescripcion("Descripcion Actualizada");
+        CategoriaUpdateDTO dto = new CategoriaUpdateDTO();
+        dto.setNombre("Categoria Actualizada");
+        dto.setDescripcion("Descripcion Actualizada");
+
+        Categoria categoriaGuardada = new Categoria();
+        categoriaGuardada.setId(1L);
+        categoriaGuardada.setNombre("Categoria Actualizada");
+        categoriaGuardada.setDescripcion("Descripcion Actualizada");
 
         when(categoriaRepository.findById(categoriaId)).thenReturn(Optional.of(categoria));
-        when(categoriaRepository.save(any())).thenReturn(categoriaActualizada);
+        when(categoriaRepository.save(any())).thenReturn(categoriaGuardada);
 
-        Categoria resultado = categoriaService.update(categoriaId, categoriaActualizada);
+        CategoriaResponseDTO resultado = categoriaService.update(categoriaId, dto);
         assertNotNull(resultado);
         assertEquals("Categoria Actualizada", resultado.getNombre());
         assertEquals("Descripcion Actualizada", resultado.getDescripcion());
@@ -173,13 +184,13 @@ public class CategoriaServiceTest {
     @Test
     void update_DeberiaLanzarResourceNotFoundExceptionSiCategoriaNoExiste() {
         Long categoriaId = 1L;
-        Categoria categoriaActualizada = new Categoria();
-        categoriaActualizada.setNombre("Categoria Actualizada");
+        CategoriaUpdateDTO dto = new CategoriaUpdateDTO();
+        dto.setNombre("Categoria Actualizada");
 
         when(categoriaRepository.findById(categoriaId)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            categoriaService.update(categoriaId, categoriaActualizada);
+            categoriaService.update(categoriaId, dto);
         });
 
         assertEquals("Recurso no encontrado", exception.getMessage());
@@ -188,13 +199,13 @@ public class CategoriaServiceTest {
     @Test
     void update_DeberiaLanzarValidationExceptionSiCategoriaTieneNombreVacio() {
         Long categoriaId = 1L;
-        Categoria categoriaActualizada = new Categoria();
-        categoriaActualizada.setNombre("");
+        CategoriaUpdateDTO dto = new CategoriaUpdateDTO();
+        dto.setNombre("");
 
         when(categoriaRepository.findById(categoriaId)).thenReturn(Optional.of(categoria));
 
-        Exception exception = assertThrows(Exception.class, () -> {
-            categoriaService.update(categoriaId, categoriaActualizada);
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
+            categoriaService.update(categoriaId, dto);
         });
 
         assertEquals("El nombre de la categoría no puede estar vacío", exception.getMessage());
@@ -203,13 +214,13 @@ public class CategoriaServiceTest {
     @Test
     void update_DeberiaLanzarValidationExceptionSiCategoriaTieneNombreNull() {
         Long categoriaId = 1L;
-        Categoria categoriaActualizada = new Categoria();
-        categoriaActualizada.setNombre(null);
+        CategoriaUpdateDTO dto = new CategoriaUpdateDTO();
+        dto.setNombre(null);
 
         when(categoriaRepository.findById(categoriaId)).thenReturn(Optional.of(categoria));
 
-        Exception exception = assertThrows(Exception.class, () -> {
-            categoriaService.update(categoriaId, categoriaActualizada);
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
+            categoriaService.update(categoriaId, dto);
         });
 
         assertEquals("El nombre de la categoría no puede estar vacío", exception.getMessage());
@@ -220,7 +231,7 @@ public class CategoriaServiceTest {
     void findAll_DeberiaRetornarListaConUnaCategoria() {
         when(categoriaRepository.findAll()).thenReturn(List.of(categoria));
 
-        List<Categoria> categorias = categoriaService.findAll();
+        List<CategoriaResponseDTO> categorias = categoriaService.findAll();
 
         assertNotNull(categorias);
         assertEquals(1, categorias.size());
@@ -231,7 +242,7 @@ public class CategoriaServiceTest {
     void findAll_DeberiaRetornarListaVaciaCuandoNoHayCategorias() {
         when(categoriaRepository.findAll()).thenReturn(List.of());
 
-        List<Categoria> categorias = categoriaService.findAll();
+        List<CategoriaResponseDTO> categorias = categoriaService.findAll();
 
         assertNotNull(categorias);
         assertTrue(categorias.isEmpty());
@@ -246,7 +257,7 @@ public class CategoriaServiceTest {
 
         when(categoriaRepository.findAll()).thenReturn(List.of(categoria, otraCategoria));
 
-        List<Categoria> categorias = categoriaService.findAll();
+        List<CategoriaResponseDTO> categorias = categoriaService.findAll();
 
         assertNotNull(categorias);
         assertEquals(2, categorias.size());
