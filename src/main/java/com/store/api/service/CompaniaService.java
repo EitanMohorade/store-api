@@ -4,6 +4,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.store.api.dto.compania.CompaniaCreateDTO;
+import com.store.api.dto.compania.CompaniaResponseDTO;
+import com.store.api.dto.compania.CompaniaUpdateDTO;
 import com.store.api.entity.Compania;
 import com.store.api.exception.ResourceNotFoundException;
 import com.store.api.exception.ValidationException;
@@ -28,13 +31,15 @@ public class CompaniaService {
     /**
      * Crea una nueva compañía después de validarla.
      * 
-     * @param compania Compañía a crear
-     * @return Compañía creada con ID generado
+     * @param dto CompaniaCreateDTO con datos de la compañía
+     * @return CompaniaResponseDTO creada con ID generado
      * @throws ValidationException si la compañía no cumple validaciones
      */
-    public Compania create(Compania compania) {
+    public CompaniaResponseDTO create(CompaniaCreateDTO dto) {
+        Compania compania = toEntity(dto);
         validate(compania);
-        return companiaRepository.save(compania);
+        Compania guardada = companiaRepository.save(compania);
+        return toResponseDTO(guardada);
     }
 
     /**
@@ -54,30 +59,30 @@ public class CompaniaService {
      * Actualiza una compañía existente.
      * 
      * @param id ID de la compañía a actualizar
-     * @param compania Compañía con datos actualizados
-     * @return Compañía actualizada
+     * @param dto CompaniaUpdateDTO con datos actualizados
+     * @return CompaniaResponseDTO actualizada
      * @throws ResourceNotFoundException si la compañía no existe
      * @throws ValidationException si la compañía no cumple validaciones
      */
-    public Compania update(Long id, Compania compania) {
-        Compania existente = findById(id);
+    public CompaniaResponseDTO update(Long id, CompaniaUpdateDTO dto) {
+        Compania existente = getEntityById(id);
 
-        existente.setNombre(compania.getNombre());
+        existente.setNombre(dto.getNombre());
         validate(existente);
 
-        return companiaRepository.save(existente);
+        Compania guardada = companiaRepository.save(existente);
+        return toResponseDTO(guardada);
     }
 
     /**
      * Obtiene una compañía por su ID.
      * 
      * @param id ID de la compañía
-     * @return Compañía encontrada
+     * @return CompaniaResponseDTO encontrada
      * @throws ResourceNotFoundException si la compañía no existe
      */
-    public Compania findById(Long id) {
-        return companiaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException());
+    public CompaniaResponseDTO findById(Long id) {
+        return toResponseDTO(getEntityById(id));
     }
 
     /**
@@ -85,8 +90,11 @@ public class CompaniaService {
      * 
      * @return Lista de todas las compañías
      */
-    public List<Compania> findAll() {
-        return companiaRepository.findAll();
+    public List<CompaniaResponseDTO> findAll() {
+        return companiaRepository.findAll()
+                .stream()
+                .map(this::toResponseDTO)
+                .toList();
     }
 
     /**
@@ -103,12 +111,13 @@ public class CompaniaService {
      * Obtiene una compañía por su nombre.
      * 
      * @param nombre Nombre de la compañía
-     * @return Compañía encontrada
+     * @return CompaniaResponseDTO encontrada
      * @throws ResourceNotFoundException si la compañía no existe
      */
-    public Compania findByNombre(String nombre) {
-        return companiaRepository.findByNombreIgnoreCase(nombre)
+    public CompaniaResponseDTO findByNombre(String nombre) {
+        Compania compania = companiaRepository.findByNombreIgnoreCase(nombre)
                 .orElseThrow(() -> new ResourceNotFoundException());
+        return toResponseDTO(compania);
     }
     
     /**
@@ -136,5 +145,23 @@ public class CompaniaService {
         if(companiaRepository.existsByNombre(compania.getNombre())) {
             throw new ValidationException("Ya existe una compañía con el mismo nombre");
         }
+    }
+
+    private Compania getEntityById(Long id) {
+        return companiaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException());
+    }
+
+    private Compania toEntity(CompaniaCreateDTO dto) {
+        Compania compania = new Compania();
+        compania.setNombre(dto.getNombre());
+        return compania;
+    }
+
+    private CompaniaResponseDTO toResponseDTO(Compania compania) {
+        CompaniaResponseDTO dto = new CompaniaResponseDTO();
+        dto.setId(compania.getId());
+        dto.setNombre(compania.getNombre());
+        return dto;
     }
 }

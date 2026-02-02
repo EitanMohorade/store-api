@@ -17,6 +17,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.store.api.dto.compania.CompaniaCreateDTO;
+import com.store.api.dto.compania.CompaniaResponseDTO;
+import com.store.api.dto.compania.CompaniaUpdateDTO;
 import com.store.api.entity.Compania;
 import com.store.api.exception.ResourceNotFoundException;
 import com.store.api.exception.ValidationException;
@@ -59,16 +62,19 @@ public class CompaniaServiceTest {
                 return c;
             });
 
-        Compania nuevaCompania = companiaService.create(compania);
+        CompaniaCreateDTO dto = new CompaniaCreateDTO();
+        dto.setNombre("Compania Test");
+
+        CompaniaResponseDTO nuevaCompania = companiaService.create(dto);
 
         assertNotNull(nuevaCompania.getId());
         assertEquals("Compania Test", nuevaCompania.getNombre());
    }
 
    @Test
-    void create_DeberiaLanzarValidationExceptionCuandoNombreEsNull() {
-          Compania companiaInvalida = new Compania();
-          companiaInvalida.setNombre(null);
+        void create_DeberiaLanzarValidationExceptionCuandoNombreEsNull() {
+            CompaniaCreateDTO companiaInvalida = new CompaniaCreateDTO();
+            companiaInvalida.setNombre(null);
 
           ValidationException exception = assertThrows(ValidationException.class, () -> {
               companiaService.create(companiaInvalida);
@@ -78,9 +84,9 @@ public class CompaniaServiceTest {
     }
 
     @Test
-    void create_DeberiaLanzarValidationExceptionCuandoNombreExcedeLongitudMaxima() {
-          Compania companiaInvalida = new Compania();
-          companiaInvalida.setNombre("A".repeat(101));
+        void create_DeberiaLanzarValidationExceptionCuandoNombreExcedeLongitudMaxima() {
+            CompaniaCreateDTO companiaInvalida = new CompaniaCreateDTO();
+            companiaInvalida.setNombre("A".repeat(101));
 
           ValidationException exception = assertThrows(ValidationException.class, () -> {
               companiaService.create(companiaInvalida);
@@ -90,9 +96,9 @@ public class CompaniaServiceTest {
     }
 
     @Test
-    void create_DeberiaLanzarValidationExceptionCuandoNombreYaExiste() {
-          Compania companiaInvalida = new Compania();
-          companiaInvalida.setNombre("Compania Test");
+        void create_DeberiaLanzarValidationExceptionCuandoNombreYaExiste() {
+            CompaniaCreateDTO companiaInvalida = new CompaniaCreateDTO();
+            companiaInvalida.setNombre("Compania Test");
 
           when(companiaRepository.existsByNombre("Compania Test")).thenReturn(true);
 
@@ -104,9 +110,9 @@ public class CompaniaServiceTest {
     }
 
     @Test
-    void create_DeberiaLanzarValidationExceptionCuandoNombreEsVacio() {
-          Compania companiaInvalida = new Compania();
-          companiaInvalida.setNombre("   ");
+        void create_DeberiaLanzarValidationExceptionCuandoNombreEsVacio() {
+            CompaniaCreateDTO companiaInvalida = new CompaniaCreateDTO();
+            companiaInvalida.setNombre("   ");
 
           ValidationException exception = assertThrows(ValidationException.class, () -> {
               companiaService.create(companiaInvalida);
@@ -142,18 +148,18 @@ public class CompaniaServiceTest {
 
         when(companiaRepository.save(any()))
             .thenAnswer(invocation -> invocation.getArgument(0));
-        
-        Compania companiaActualizada = new Compania();
+
+        CompaniaUpdateDTO companiaActualizada = new CompaniaUpdateDTO();
         companiaActualizada.setNombre("Compania Actualizada");
 
-        Compania resultado = companiaService.update(1L, companiaActualizada);
+        CompaniaResponseDTO resultado = companiaService.update(1L, companiaActualizada);
 
         assertEquals("Compania Actualizada", resultado.getNombre());
     }
 
     @Test
     void update_DeberiaLanzarResourceNotFoundExceptionCuandoIdNoExiste() {
-        Compania companiaActualizada = new Compania();
+        CompaniaUpdateDTO companiaActualizada = new CompaniaUpdateDTO();
         companiaActualizada.setNombre("Compania Actualizada");
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
@@ -167,7 +173,7 @@ public class CompaniaServiceTest {
         when(companiaRepository.findById(1L))
             .thenReturn(Optional.of(compania));
 
-        Compania companiaInvalida = new Compania();
+        CompaniaUpdateDTO companiaInvalida = new CompaniaUpdateDTO();
         companiaInvalida.setNombre(null);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
@@ -182,7 +188,7 @@ public class CompaniaServiceTest {
         when(companiaRepository.findById(1L))
             .thenReturn(Optional.of(compania));
 
-        Compania companiaInvalida = new Compania();
+        CompaniaUpdateDTO companiaInvalida = new CompaniaUpdateDTO();
         companiaInvalida.setNombre("A".repeat(101));
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
@@ -197,7 +203,7 @@ public class CompaniaServiceTest {
         when(companiaRepository.findById(1L))
             .thenReturn(Optional.of(compania));
 
-        Compania companiaInvalida = new Compania();
+        CompaniaUpdateDTO companiaInvalida = new CompaniaUpdateDTO();
         companiaInvalida.setNombre("Compania Test");
 
         when(companiaRepository.existsByNombre("Compania Test")).thenReturn(true);
@@ -214,7 +220,7 @@ public class CompaniaServiceTest {
         when(companiaRepository.findById(1L))
             .thenReturn(Optional.of(compania));
 
-        Compania companiaInvalida = new Compania();
+        CompaniaUpdateDTO companiaInvalida = new CompaniaUpdateDTO();
         companiaInvalida.setNombre("   ");
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
@@ -229,7 +235,7 @@ public class CompaniaServiceTest {
         when(companiaRepository.findById(1L))
             .thenReturn(Optional.of(compania));
 
-        Compania resultado = companiaService.findById(1L);
+        CompaniaResponseDTO resultado = companiaService.findById(1L);
 
         assertNotNull(resultado);
         assertEquals("Compania Test", resultado.getNombre());
@@ -262,7 +268,7 @@ public class CompaniaServiceTest {
         when(companiaRepository.findAll())
             .thenReturn(List.of(compania, segundaCompania, terceraCompania));
 
-        List<Compania> resultado = companiaService.findAll();
+        List<CompaniaResponseDTO> resultado = companiaService.findAll();
 
         assertNotNull(resultado);
         assertEquals(3, resultado.size());
@@ -298,7 +304,7 @@ public class CompaniaServiceTest {
         when(companiaRepository.findByNombreIgnoreCase("Compania Test"))
             .thenReturn(Optional.of(compania));
 
-        Compania resultado = companiaService.findByNombre("Compania Test");
+        CompaniaResponseDTO resultado = companiaService.findByNombre("Compania Test");
 
         assertNotNull(resultado);
         assertEquals("Compania Test", resultado.getNombre());
