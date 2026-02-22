@@ -48,11 +48,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
+            .anonymous(anonymous -> anonymous.authorities("ROLE_USER"))
             .authorizeHttpRequests(authz -> authz
 
-                .requestMatchers(HttpMethod.GET, "/api/categorias", "/api/categorias/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/productos", "/api/productos/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/companias", "/api/companias/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/categorias", "/api/categorias/**").hasAnyRole("ADMIN", "USER")
+                .requestMatchers(HttpMethod.GET, "/api/productos", "/api/productos/**").hasAnyRole("ADMIN", "USER")
+                .requestMatchers(HttpMethod.GET, "/api/companias", "/api/companias/**").hasAnyRole("ADMIN", "USER")
                 
                 .requestMatchers(HttpMethod.GET, "/api/ventas", "/api/ventas/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/**").hasRole("ADMIN")
