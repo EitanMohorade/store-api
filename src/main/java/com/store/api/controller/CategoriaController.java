@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import com.store.api.dto.categoria.CategoriaCreateDTO;
 import com.store.api.dto.categoria.CategoriaResponseDTO;
 import com.store.api.dto.categoria.CategoriaUpdateDTO;
@@ -41,7 +42,7 @@ public class CategoriaController {
     }
 
     @PostMapping
-    public ResponseEntity<CategoriaResponseDTO> create(@RequestBody CategoriaCreateDTO dto) {
+    public ResponseEntity<CategoriaResponseDTO> create(@Valid @RequestBody CategoriaCreateDTO dto) {
 
         CategoriaResponseDTO creada = categoriaService.create(dto);
 
@@ -51,7 +52,7 @@ public class CategoriaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CategoriaResponseDTO> update(@PathVariable Long id, @RequestBody CategoriaUpdateDTO dto) {
+    public ResponseEntity<CategoriaResponseDTO> update(@PathVariable Long id, @Valid @RequestBody CategoriaUpdateDTO dto) {
 
         return ResponseEntity.ok(categoriaService.update(id, dto));
     }

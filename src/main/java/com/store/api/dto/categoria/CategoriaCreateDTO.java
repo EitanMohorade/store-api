@@ -1,8 +1,11 @@
 package com.store.api.dto.categoria;
 
+import jakarta.validation.constraints.*;
+
 public class CategoriaCreateDTO {
     private Long id;
 
+    @NotBlank(message = "El nombre de la categoría no puede estar vacío")
     private String nombre;
     
     private String descripcion;

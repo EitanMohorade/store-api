@@ -144,7 +144,7 @@ public class CompaniaControllerIntegrationTest {
         mockMvc.perform(post("/api/companias")
             .contentType(MediaType.APPLICATION_JSON)
             .content(nuevaCompaniaJson))
-            .andExpect(status().isUnprocessableEntity());
+            .andExpect(status().isBadRequest());
         }
 
         @Test

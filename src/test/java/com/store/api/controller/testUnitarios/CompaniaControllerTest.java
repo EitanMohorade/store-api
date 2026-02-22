@@ -154,15 +154,10 @@ public class CompaniaControllerTest {
 		}
 		""";
 
-	when(companiaService.create(any()))
-		.thenThrow(new ValidationException("El nombre de la compañía es obligatorio"));
-
 	mockMvc.perform(post("/api/companias")
 		.contentType(MediaType.APPLICATION_JSON)
 		.content(nuevaCompaniaJson))
-		.andExpect(status().isUnprocessableEntity());
-
-	verify(companiaService, times(1)).create(any());
+		.andExpect(status().isBadRequest());
     }
 
     // Test de PUT

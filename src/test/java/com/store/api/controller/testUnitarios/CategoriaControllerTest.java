@@ -150,15 +150,10 @@ public class CategoriaControllerTest {
             }
             """;
 
-        when(categoriaService.create(org.mockito.ArgumentMatchers.any()))
-            .thenThrow(new ValidationException("El nombre de la categoría no puede estar vacío"));
-
         mockMvc.perform(post("/api/categorias")
             .contentType(MediaType.APPLICATION_JSON)
             .content(nuevaCategoriaJson))
-            .andExpect(status().isUnprocessableEntity());
-
-        verify(categoriaService, times(1)).create(org.mockito.ArgumentMatchers.any());
+            .andExpect(status().isBadRequest());
         }
 
 

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import java.util.List;
 
 import com.store.api.dto.producto.ProductoCreateDTO;
@@ -39,13 +40,13 @@ public class ProductoController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductoResponseDTO> create(@RequestBody ProductoCreateDTO dto) {
+    public ResponseEntity<ProductoResponseDTO> create(@Valid @RequestBody ProductoCreateDTO dto) {
         ProductoResponseDTO creado = productoService.create(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProductoResponseDTO> update(@PathVariable Long id, @RequestBody ProductoUpdateDTO dto) {
+    public ResponseEntity<ProductoResponseDTO> update(@PathVariable Long id, @Valid @RequestBody ProductoUpdateDTO dto) {
         return ResponseEntity.ok(productoService.update(id, dto));
     }
 

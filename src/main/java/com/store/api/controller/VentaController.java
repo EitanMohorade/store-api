@@ -2,6 +2,7 @@ package com.store.api.controller;
 
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import com.store.api.dto.venta.VentaCreateDTO;
 import com.store.api.dto.venta.VentaUpdateDTO;
 import com.store.api.dto.venta.VentaResponseDTO;
@@ -47,7 +48,7 @@ public class VentaController {
      * @return VentaResponseDTO de la venta creada
      */
     @PostMapping
-    public VentaResponseDTO create(@RequestBody VentaCreateDTO dto) {
+    public VentaResponseDTO create(@Valid @RequestBody VentaCreateDTO dto) {
         return ventaService.create(dto);
     }
 
@@ -59,7 +60,7 @@ public class VentaController {
      * @return VentaResponseDTO de la venta actualizada
      */
     @PutMapping("/{id}")
-    public VentaResponseDTO update(@PathVariable Long id, @RequestBody VentaUpdateDTO dto) {
+    public VentaResponseDTO update(@PathVariable Long id, @Valid @RequestBody VentaUpdateDTO dto) {
         return ventaService.update(id, dto);
     }
 

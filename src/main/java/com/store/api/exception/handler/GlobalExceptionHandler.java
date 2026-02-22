@@ -2,6 +2,7 @@ package com.store.api.exception.handler;
 
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.*;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import com.store.api.exception.*;
@@ -9,6 +10,7 @@ import com.store.api.exception.model.ErrorResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -71,5 +73,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityException.class)
     public ResponseEntity<ErrorResponse> handleIntegrity(DataIntegrityException ex, HttpServletRequest req) {
         return build(HttpStatus.CONFLICT, ErrorCode.DATA_INTEGRITY, ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpServletRequest req) {
+        String detailedMessage = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+        return build(HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR, detailedMessage, req);
     }
 }

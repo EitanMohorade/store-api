@@ -1,7 +1,10 @@
 package com.store.api.dto.compania;
 
+import jakarta.validation.constraints.*;
+
 public class CompaniaCreateDTO {
     private Long id;
+    @NotBlank(message = "El nombre de la compañía no puede estar vacío")
     private String nombre;
 
     public void setId(Long id) {

@@ -1,10 +1,12 @@
 package com.store.api.dto.producto;
 
+import jakarta.validation.constraints.*;
 import com.store.api.entity.Categoria;
 import com.store.api.entity.Compania;
 
 public class ProductoCreateDTO {
     private Long id;
+    @NotBlank(message = "El artículo no puede estar vacío")
     private String articulo;
     private String descripcion;
     private int stock;

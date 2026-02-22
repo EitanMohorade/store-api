@@ -3,6 +3,7 @@ package com.store.api.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import com.store.api.dto.compania.CompaniaCreateDTO;
 import com.store.api.dto.compania.CompaniaResponseDTO;
 import com.store.api.dto.compania.CompaniaUpdateDTO;
@@ -42,7 +43,7 @@ public class CompaniaController {
     }
 
     @PostMapping
-    public ResponseEntity<CompaniaResponseDTO> create(@RequestBody CompaniaCreateDTO dto) {
+    public ResponseEntity<CompaniaResponseDTO> create(@Valid @RequestBody CompaniaCreateDTO dto) {
 
         CompaniaResponseDTO creada = companiaService.create(dto);
 
@@ -52,7 +53,7 @@ public class CompaniaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CompaniaResponseDTO> update(@PathVariable Long id, @RequestBody CompaniaUpdateDTO dto) {
+    public ResponseEntity<CompaniaResponseDTO> update(@PathVariable Long id, @Valid @RequestBody CompaniaUpdateDTO dto) {
 
         return ResponseEntity.ok(companiaService.update(id, dto));
     }

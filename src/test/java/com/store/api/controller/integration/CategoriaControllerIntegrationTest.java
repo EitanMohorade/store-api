@@ -139,7 +139,7 @@ public class CategoriaControllerIntegrationTest {
         mockMvc.perform(post("/api/categorias")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(nuevaCategoriaJson))
-                .andExpect(status().isUnprocessableEntity());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
