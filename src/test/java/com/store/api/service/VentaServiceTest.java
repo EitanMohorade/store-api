@@ -2,13 +2,20 @@ package com.store.api.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.store.api.entity.Producto;
 import com.store.api.entity.Venta;
+import com.store.api.dto.venta.VentaCreateDTO;
+import com.store.api.dto.venta.VentaUpdateDTO;
+import com.store.api.dto.venta.VentaResponseDTO;
 import com.store.api.exception.DuplicateResourceException;
+import com.store.api.exception.ResourceNotFoundException;
 import com.store.api.exception.ValidationException;
 import com.store.api.repository.VentaRepository;
 
@@ -34,21 +41,38 @@ public class VentaServiceTest {
     private VentaService ventaService;
 
     private Venta venta;
+    private VentaCreateDTO ventaCreateDTO;
+    private Producto producto;
+    private VentaResponseDTO ventaResponseDTO;
+
     @BeforeEach
     public void setUp() {
+        // Setup base de entidad Venta para mocks del repositorio
         venta = new Venta();
         venta.setId(1L);
         venta.setCantidad(2);
-        Producto producto = new Producto();
+        producto = new Producto();
         producto.setId(1L);
         producto.setArticulo("ProductoTest");
         producto.setStock(5);
         producto.setPrecioUnitario(50);
         producto.setPrecio(100);
         venta.setProducto(producto);
+
+        // Setup para VentaCreateDTO
+        ventaCreateDTO = new VentaCreateDTO();
+        ventaCreateDTO.setCantidad(2);
+        ventaCreateDTO.setProducto(producto);
+
+        ventaResponseDTO = new VentaResponseDTO(
+            venta.getId(),
+            venta.getProducto(),
+            venta.getCantidad(),
+            venta.getFecha()
+        );
     }
     
-    // Test de funcion create
+    // Test de función create
     @Test
     void create_DeberiaCrearVentaCorrectamente() {
         when(ventaRepository.save(any()))
@@ -58,18 +82,19 @@ public class VentaServiceTest {
             return v;
         });
 
-        Venta ventaCreada = ventaService.create(venta);
+        VentaResponseDTO ventaCreada = ventaService.create(ventaCreateDTO);
         assertNotNull(ventaCreada);
         assertEquals(2, ventaCreada.getCantidad());
         assertEquals(1L, ventaCreada.getId());
-        assertEquals(100, ventaCreada.getProducto().getPrecio());
+        assertEquals(100, ventaCreada.getPrecio());
         assertEquals(3, ventaCreada.getProducto().getStock());
     }
 
     @Test
     void create_DeberiaLanzarValidationExceptionCuandoProductoEsNulo() {
-        Venta ventaInvalida = new Venta(); 
+        VentaCreateDTO ventaInvalida = new VentaCreateDTO();
         ventaInvalida.setProducto(null);
+        ventaInvalida.setCantidad(1);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
             ventaService.create(ventaInvalida);
@@ -80,9 +105,9 @@ public class VentaServiceTest {
 
     @Test
     void create_DeberiaLanzarValidationExceptionCuandoCantidadEsInvalida() {
-        Venta ventaInvalida = new Venta();
+        VentaCreateDTO ventaInvalida = new VentaCreateDTO();
         ventaInvalida.setProducto(new Producto());
-        ventaInvalida.setCantidad(0); 
+        ventaInvalida.setCantidad(0);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
             ventaService.create(ventaInvalida);
@@ -98,7 +123,7 @@ public class VentaServiceTest {
         producto.setArticulo("ProductoTest");
         producto.setStock(5);
         
-        Venta ventaDuplicada = new Venta();
+        VentaCreateDTO ventaDuplicada = new VentaCreateDTO();
         ventaDuplicada.setId(1L);
         ventaDuplicada.setProducto(producto);
         ventaDuplicada.setCantidad(1);
@@ -114,11 +139,11 @@ public class VentaServiceTest {
 
     @Test
     void create_DeberiaLanzarValidationExceptionCuandoStockEsInsuficiente() {
-        Venta ventaInvalida = new Venta();
+        VentaCreateDTO ventaInvalida = new VentaCreateDTO();
         Producto productoConPocoStock = new Producto();
-        productoConPocoStock.setStock(1); 
+        productoConPocoStock.setStock(1);
         ventaInvalida.setProducto(productoConPocoStock);
-        ventaInvalida.setCantidad(2); 
+        ventaInvalida.setCantidad(2);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
             ventaService.create(ventaInvalida);
@@ -136,14 +161,123 @@ public class VentaServiceTest {
             return v;
         });
 
-        int stockInicial = venta.getProducto().getStock();
-        ventaService.create(venta);
-        int stockFinal = venta.getProducto().getStock();
+        int stockInicial = ventaCreateDTO.getProducto().getStock();
+        ventaService.create(ventaCreateDTO);
+        int stockFinal = ventaCreateDTO.getProducto().getStock();
 
-        assertEquals(stockInicial - venta.getCantidad(), stockFinal);
+        assertEquals(stockInicial - ventaCreateDTO.getCantidad(), stockFinal);
     }
 
-    // Testd de funcion ventasDeHoy
+    // Test de función findAll
+    @Test
+    void findAll_DeberiaRetornarListaDeVentasEnFormatoDTO() {
+        when(ventaRepository.findAll())
+            .thenReturn(List.of(venta));
+
+        List<VentaResponseDTO> ventas = ventaService.findAll();
+
+        assertNotNull(ventas);
+        assertEquals(1, ventas.size());
+        assertEquals(venta.getId(), ventas.get(0).getId());
+    }
+
+    @Test
+    void findAll_DeberiaRetornarListaVaciaWhenNoHayVentas() {
+        when(ventaRepository.findAll())
+            .thenReturn(List.of());
+
+        List<VentaResponseDTO> ventas = ventaService.findAll();
+
+        assertNotNull(ventas);
+        assertTrue(ventas.isEmpty());
+    }
+
+    // Test de función findById
+    @Test
+    void findById_DeberiaRetornarVentaPorId() {
+        when(ventaRepository.findById(1L))
+            .thenReturn(Optional.of(venta));
+
+        VentaResponseDTO ventaFound = ventaService.findById(1L);
+
+        assertNotNull(ventaFound);
+        assertEquals(venta.getId(), ventaFound.getId());
+        assertEquals(venta.getCantidad(), ventaFound.getCantidad());
+    }
+
+    @Test
+    void findById_DeberiaLanzarResourceNotFoundExceptionWhenVentaNoExiste() {
+        when(ventaRepository.findById(999L))
+            .thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            ventaService.findById(999L);
+        });
+
+        assertNotNull(exception);
+    }
+
+    // Test de función update
+    @Test
+    void update_DeberiaActualizarVentaCorrectamente() {
+        Venta existingVenta = new Venta();
+        existingVenta.setId(1L);
+        existingVenta.setCantidad(2);
+        existingVenta.setProducto(producto);
+
+        VentaUpdateDTO updateDTO = new VentaUpdateDTO();
+        updateDTO.setCantidad(3);
+        updateDTO.setProducto(producto);
+
+        when(ventaRepository.findById(1L))
+            .thenReturn(Optional.of(existingVenta));
+        when(ventaRepository.save(any()))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+        VentaResponseDTO updated = ventaService.update(1L, updateDTO);
+
+        assertNotNull(updated);
+        assertEquals(3, updated.getCantidad());
+    }
+
+    @Test
+    void update_DeberiaLanzarResourceNotFoundExceptionWhenVentaNoExiste() {
+        VentaUpdateDTO updateDTO = new VentaUpdateDTO();
+        updateDTO.setCantidad(3);
+        updateDTO.setProducto(producto);
+
+        when(ventaRepository.findById(999L))
+            .thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            ventaService.update(999L, updateDTO);
+        });
+
+        assertNotNull(exception);
+    }
+
+    // Test de función delete
+    @Test
+    void delete_DeberiaEliminarVentaCorrectamente() {
+        when(ventaRepository.existsById(1L))
+            .thenReturn(true);
+
+        assertDoesNotThrow(() -> ventaService.delete(1L));
+    }
+
+    @Test
+    void delete_DeberiaLanzarResourceNotFoundExceptionWhenVentaNoExiste() {
+        when(ventaRepository.existsById(999L))
+            .thenReturn(false);
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            ventaService.delete(999L);
+        });
+
+        assertNotNull(exception);
+    }
+
+    // Test de funcion ventasDeHoy
     @Test
     void ventasDeHoy_DeberiaRetornarDosVentasDelDiaConMismoProducto() {
         Producto productoHoy = new Producto();
@@ -162,17 +296,21 @@ public class VentaServiceTest {
 
         when(ventaRepository.findByFechaBetween(any(), any()))
             .thenReturn(List.of(ventaHoyUno, ventaHoyDos));
-        List<Venta> ventasHoy = ventaService.ventasDeHoy();
+        List<VentaResponseDTO> ventasHoy = ventaService.ventasDeHoy();
 
         assertNotNull(ventasHoy);
         assertEquals(2, ventasHoy.size());
+        assertEquals(2L, ventasHoy.get(0).getId());
+        assertEquals(1, ventasHoy.get(0).getCantidad());
+        assertEquals(3L, ventasHoy.get(1).getId());
+        assertEquals(3, ventasHoy.get(1).getCantidad());
     }
 
     @Test
     void ventasDeHoy_DeberiaRetornarListaVaciaCuandoNoHayVentasHoy() {
         when(ventaRepository.findByFechaBetween(any(), any()))
             .thenReturn(List.of());
-        List<Venta> ventasHoy = ventaService.ventasDeHoy();
+        List<VentaResponseDTO> ventasHoy = ventaService.ventasDeHoy();
 
         assertNotNull(ventasHoy);
         assertTrue(ventasHoy.isEmpty());
@@ -197,17 +335,21 @@ public class VentaServiceTest {
 
         when(ventaRepository.findByFechaBetween(any(), any()))
             .thenReturn(List.of(ventaSemanaUno, ventaSemanaDos));
-        List<Venta> ventasSemana = ventaService.ventasDeLaSemana();
+        List<VentaResponseDTO> ventasSemana = ventaService.ventasDeLaSemana();
 
         assertNotNull(ventasSemana);
         assertEquals(2, ventasSemana.size());
+        assertEquals(4L, ventasSemana.get(0).getId());
+        assertEquals(2, ventasSemana.get(0).getCantidad());
+        assertEquals(5L, ventasSemana.get(1).getId());
+        assertEquals(1, ventasSemana.get(1).getCantidad());
     }
 
     @Test
     void ventasDeLaSemana_DeberiaRetornarListaVaciaCuandoNoHayVentasEnLaSemana() {
         when(ventaRepository.findByFechaBetween(any(), any()))
             .thenReturn(List.of());
-        List<Venta> ventasSemana = ventaService.ventasDeLaSemana();
+        List<VentaResponseDTO> ventasSemana = ventaService.ventasDeLaSemana();
 
         assertNotNull(ventasSemana);
         assertTrue(ventasSemana.isEmpty());
@@ -231,17 +373,21 @@ public class VentaServiceTest {
 
         when(ventaRepository.findByFechaBetween(any(), any()))
             .thenReturn(List.of(ventaMesUno, ventaMesDos));
-        List<Venta> ventasMes = ventaService.ventasDelMes();
+        List<VentaResponseDTO> ventasMes = ventaService.ventasDelMes();
 
         assertNotNull(ventasMes);
         assertEquals(2, ventasMes.size());
+        assertEquals(6L, ventasMes.get(0).getId());
+        assertEquals(4, ventasMes.get(0).getCantidad());
+        assertEquals(7L, ventasMes.get(1).getId());
+        assertEquals(2, ventasMes.get(1).getCantidad());
     }
 
     @Test
     void ventasDelMes_DeberiaRetornarListaVaciaCuandoNoHayVentasEnElMes() {
         when(ventaRepository.findByFechaBetween(any(), any()))
             .thenReturn(List.of());
-        List<Venta> ventasMes = ventaService.ventasDelMes();
+        List<VentaResponseDTO> ventasMes = ventaService.ventasDelMes();
 
         assertNotNull(ventasMes);
         assertTrue(ventasMes.isEmpty());
@@ -267,40 +413,62 @@ public class VentaServiceTest {
 
         when(ventaRepository.findByFechaBetween(any(), any()))
             .thenReturn(List.of(ventaRangoUno, ventaRangoDos));
-        List<Venta> ventasRango = ventaService.ventasEntre(
+        List<VentaResponseDTO> ventasRango = ventaService.ventasEntre(
             null,
             null
         );
 
         assertNotNull(ventasRango);
         assertEquals(2, ventasRango.size());
+        assertEquals(8L, ventasRango.get(0).getId());
+        assertEquals(1, ventasRango.get(0).getCantidad());
+        assertEquals(9L, ventasRango.get(1).getId());
+        assertEquals(3, ventasRango.get(1).getCantidad());
+    }
+
+    @Test
+    void update_NoDebeValidarDuplicadoPorId_EnFlujoDeActualizacion() {
+        Venta existingVenta = new Venta();
+        existingVenta.setId(1L);
+        existingVenta.setCantidad(2);
+        existingVenta.setProducto(producto);
+
+        VentaUpdateDTO updateDTO = new VentaUpdateDTO();
+        updateDTO.setCantidad(1);
+        updateDTO.setProducto(producto);
+
+        when(ventaRepository.findById(1L)).thenReturn(Optional.of(existingVenta));
+        when(ventaRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        assertDoesNotThrow(() -> ventaService.update(1L, updateDTO));
+        verify(ventaRepository, never()).existsById(1L);
     }
 
     // Test de funcion getPrecioUnitario
     @Test
     void getPrecioUnitario_DeberiaRetornarPrecioUnitarioCorrecto() {
-        Integer precioUnitario = ventaService.getPrecioUnitario(venta);
+        Integer precioUnitario = ventaService.getPrecioUnitario(ventaResponseDTO);
         assertEquals(50, precioUnitario);
     }
 
     // Test de funcion getPrecio
     @Test
     void getPrecio_DeberiaRetornarPrecioCorrecto() {
-        Integer precio = ventaService.getPrecio(venta);
+        Integer precio = ventaService.getPrecio(ventaResponseDTO);
         assertEquals(100, precio);
     }
 
     // Test de funcion getTotalPrecioUnitario
     @Test
     void getTotalPrecioUnitario_DeberiaRetornarTotalPrecioUnitarioCorrecto() {
-        Integer totalPrecioUnitario = ventaService.getTotalPrecioUnitario(venta);
+        Integer totalPrecioUnitario = ventaService.getTotalPrecioUnitario(ventaResponseDTO);
         assertEquals(100, totalPrecioUnitario);
     }
 
     // Test de funcion getTotalPrecioCliente
     @Test
     void getTotalPrecioCliente_DeberiaRetornarTotalPrecioClienteCorrecto() {
-        Integer totalPrecioCliente = ventaService.getTotalPrecioCliente(venta);
+        Integer totalPrecioCliente = ventaService.getTotalPrecioCliente(ventaResponseDTO);
         assertEquals(200, totalPrecioCliente);
     }
 }
