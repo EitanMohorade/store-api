@@ -50,7 +50,9 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .anonymous(anonymous -> anonymous.authorities("ROLE_USER"))
             .authorizeHttpRequests(authz -> authz
-
+                // Permitir acceso a Swagger UI sin autenticación
+                .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").hasAnyRole("ADMIN", "USER")
+                
                 .requestMatchers(HttpMethod.GET, "/api/categorias", "/api/categorias/**").hasAnyRole("ADMIN", "USER")
                 .requestMatchers(HttpMethod.GET, "/api/productos", "/api/productos/**").hasAnyRole("ADMIN", "USER")
                 .requestMatchers(HttpMethod.GET, "/api/companias", "/api/companias/**").hasAnyRole("ADMIN", "USER")
