@@ -3,7 +3,7 @@
 API REST en Spring Boot para gestión de inventario, productos, categorías, compañías, administradores y ventas.
 
 ## Stack
-- Java 17+
+- Java 21
 - Spring Boot
 - Spring Security (HTTP Basic)
 - Spring Data JPA

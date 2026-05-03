@@ -396,7 +396,48 @@ Para excepciones de negocio y validación manejadas por `GlobalExceptionHandler`
 }
 ```
 
+
+---
+
+## Arranque y solución rápida (si `spring-boot:run` falla)
+
+Por qué puede fallar `mvn spring-boot:run`:
+- No se cargaron las propiedades de conexión (no se activó el perfil que define `spring.datasource.url`), así Spring no puede crear un `DataSource`.
+- Falta el driver JDBC en el classpath (dependencia `postgresql` no disponible en runtime).
+- Problemas de permisos/DDL en la base de datos (ej. `permission denied for schema public`) que generan errores en el arranque.
+
+Comandos útiles para arrancar correctamente:
+
+1) Activar el perfil `dev` (si `application-dev.properties` contiene la configuración):
+
+```bash
+mvn -DskipTests -Dspring-boot.run.profiles=dev spring-boot:run
+```
+
+2) Pasar las propiedades de conexión en la línea de comandos (útil si no quieres depender de archivos locales):
+
+```bash
+mvn -DskipTests -Dspring-boot.run.arguments="--spring.profiles.active=dev \
+  --spring.datasource.url=jdbc:postgresql://localhost:5432/store_db \
+  --spring.datasource.username=username \
+  --spring.datasource.password=password" spring-boot:run
+```
+
+3) Empaquetar y ejecutar el JAR (alternativa a `spring-boot:run`):
+
+```bash
+mvn -DskipTests package
+java -jar target/store-api-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev
+```
+
+- ¿Otro proceso ocupa el puerto 8080? Verifica y mata si corresponde:
+
+```bash
+lsof -iTCP:8080 -sTCP:LISTEN -P -n
 Campos:
+ss -ltnp | grep 8080
+kill <PID>
+```
 
 - `timestamp`: fecha/hora del error.
 - `status`: HTTP status numérico.
