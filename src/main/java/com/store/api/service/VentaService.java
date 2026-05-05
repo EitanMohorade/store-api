@@ -10,6 +10,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.store.api.entity.Venta;
+import com.store.api.entity.Producto;
 import com.store.api.dto.venta.VentaCreateDTO;
 import com.store.api.dto.venta.VentaUpdateDTO;
 import com.store.api.dto.venta.VentaResponseDTO;
@@ -17,15 +18,18 @@ import com.store.api.exception.DuplicateResourceException;
 import com.store.api.exception.ResourceNotFoundException;
 import com.store.api.exception.ValidationException;
 import com.store.api.repository.VentaRepository;
+import com.store.api.repository.ProductoRepository;
 
 
 @Service
 public class VentaService {
     
     private final VentaRepository ventaRepository;
+    private final ProductoRepository productoRepository;
 
-    public VentaService(VentaRepository ventaRepository) {
+    public VentaService(VentaRepository ventaRepository, ProductoRepository productoRepository) {
         this.ventaRepository = ventaRepository;
+        this.productoRepository = productoRepository;
     }
 
     /**
@@ -222,11 +226,19 @@ public class VentaService {
     }
 
     private Venta toEntity(VentaCreateDTO dto) {
+        if (dto.getProducto() == null || dto.getProducto().getId() == null) {
+            throw new ValidationException("El producto de la venta no puede ser nulo");
+        }
+        // Fetch the full Producto from DB so stock and prices are available
+        Producto producto = productoRepository.findById(dto.getProducto().getId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No existe un producto con el ID: " + dto.getProducto().getId()));
+
         Venta venta = new Venta();
         venta.setId(dto.getId());
-        venta.setProducto(dto.getProducto());
+        venta.setProducto(producto);
         venta.setCantidad(dto.getCantidad());
-        venta.setFecha(dto.getFecha());
+        venta.setFecha(dto.getFecha() != null ? dto.getFecha() : LocalDateTime.now());
         return venta;
     }
 
