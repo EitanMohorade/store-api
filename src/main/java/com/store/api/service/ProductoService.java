@@ -1,8 +1,11 @@
 package com.store.api.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
+
 import com.store.api.repository.ProductoRepository;
 import com.store.api.entity.Producto;
 import com.store.api.exception.DuplicateResourceException;
@@ -15,49 +18,57 @@ import com.store.api.dto.producto.ProductoResponseDTO;
 
 /**
  * Servicio de negocio para la entidad Producto.
- * 
+ *
  * Proporciona operaciones de lógica de negocio para la gestión de productos,
  * incluyendo validación, búsqueda, filtrado y manipulación de stock.
- * Utiliza DTOs para la creación, actualización y respuestas de datos.
- * 
+ * Delega el almacenamiento de imágenes a ImagenStorageService (Cloudinary).
  */
 @Service
 public class ProductoService {
-    
-    private final ProductoRepository productoRepository;
 
-    public ProductoService(ProductoRepository productoRepository) {
+    private final ProductoRepository productoRepository;
+    private final ImagenStorageService imagenStorageService;
+
+    public ProductoService(ProductoRepository productoRepository,
+                           ImagenStorageService imagenStorageService) {
         this.productoRepository = productoRepository;
+        this.imagenStorageService = imagenStorageService;
     }
 
     /**
      * Crea un nuevo producto después de validarlo.
-     * 
-     * @param dto ProductoCreateDTO con los datos del producto a crear
-     * @return ProductoResponseDTO el producto creado con ID generado
-     * @throws ValidationException si el producto no cumple validaciones
+     * Si se adjunta imagen, la sube a Cloudinary y guarda la URL y publicId.
+     *
+     * @param dto    ProductoCreateDTO con los datos del producto
+     * @param imagen Archivo de imagen opcional (puede ser null)
+     * @return ProductoResponseDTO del producto creado
+     * @throws ValidationException        si el producto no cumple validaciones
      * @throws DuplicateResourceException si el artículo ya existe
      */
-    public ProductoResponseDTO create(ProductoCreateDTO dto) {
+    public ProductoResponseDTO create(ProductoCreateDTO dto, MultipartFile imagen) {
         validate(dto);
-        
+
         Producto producto = new Producto();
         producto.setArticulo(dto.getArticulo());
         producto.setDescripcion(dto.getDescripcion());
         producto.setCategoria(dto.getCategoria());
         producto.setCompania(dto.getCompania());
-        producto.setImagenUrl(dto.getImagenUrl());
         producto.setPrecio(dto.getPrecio());
         producto.setStock(dto.getStock());
         producto.setPrecioUnitario(dto.getPrecioUnitario());
-        
-        Producto saved = productoRepository.save(producto);
-        return toResponseDTO(saved);
+
+        if (imagen != null && !imagen.isEmpty()) {
+            Map<String, String> resultado = imagenStorageService.guardar(imagen);
+            producto.setImagenUrl(resultado.get("url"));
+            producto.setImagenPublicId(resultado.get("publicId"));
+        }
+
+        return toResponseDTO(productoRepository.save(producto));
     }
 
     /**
      * Obtiene un producto por su ID.
-     * 
+     *
      * @param id ID del producto
      * @return ProductoResponseDTO del producto encontrado
      * @throws ResourceNotFoundException si el producto no existe
@@ -70,7 +81,7 @@ public class ProductoService {
 
     /**
      * Obtiene todos los productos disponibles.
-     * 
+     *
      * @return Lista de ProductoResponseDTO de todos los productos
      */
     public List<ProductoResponseDTO> findAll() {
@@ -81,14 +92,17 @@ public class ProductoService {
 
     /**
      * Actualiza un producto existente.
-     * 
-     * @param id ID del producto a actualizar
-     * @param dto ProductoUpdateDTO con los valores actualizados
+     * Si se adjunta imagen nueva, elimina la anterior de Cloudinary y sube la nueva.
+     * Si no se adjunta imagen, conserva la imagen existente.
+     *
+     * @param id     ID del producto a actualizar
+     * @param dto    ProductoUpdateDTO con los valores actualizados
+     * @param imagen Archivo de imagen opcional (puede ser null)
      * @return ProductoResponseDTO del producto actualizado
      * @throws ResourceNotFoundException si el producto no existe
-     * @throws ValidationException si los datos no cumplen validaciones
+     * @throws ValidationException       si los datos no cumplen validaciones
      */
-    public ProductoResponseDTO update(Long id, ProductoUpdateDTO dto) {
+    public ProductoResponseDTO update(Long id, ProductoUpdateDTO dto, MultipartFile imagen) {
         Producto existing = productoRepository.findById(id)
                 .orElseThrow(ResourceNotFoundException::new);
 
@@ -98,31 +112,40 @@ public class ProductoService {
         existing.setDescripcion(dto.getDescripcion());
         existing.setCategoria(dto.getCategoria());
         existing.setCompania(dto.getCompania());
-        existing.setImagenUrl(dto.getImagenUrl());
         existing.setPrecio(dto.getPrecio());
         existing.setStock(dto.getStock());
         existing.setPrecioUnitario(dto.getPrecioUnitario());
 
-        Producto updated = productoRepository.save(existing);
-        return toResponseDTO(updated);
+        if (imagen != null && !imagen.isEmpty()) {
+            // Eliminar imagen anterior de Cloudinary si existe
+            imagenStorageService.eliminar(existing.getImagenPublicId());
+
+            Map<String, String> resultado = imagenStorageService.guardar(imagen);
+            existing.setImagenUrl(resultado.get("url"));
+            existing.setImagenPublicId(resultado.get("publicId"));
+        }
+
+        return toResponseDTO(productoRepository.save(existing));
     }
 
     /**
      * Elimina un producto por su ID.
-     * 
+     * También elimina su imagen de Cloudinary si tiene una asociada.
+     *
      * @param id ID del producto a eliminar
      * @throws ResourceNotFoundException si el producto no existe
      */
     public void delete(Long id) {
-        if (!productoRepository.existsById(id)) {
-            throw new ResourceNotFoundException();
-        }
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        imagenStorageService.eliminar(producto.getImagenPublicId());
         productoRepository.deleteById(id);
     }
 
     /**
      * Verifica si un producto existe por su ID.
-     * 
+     *
      * @param id ID del producto
      * @return true si el producto existe, false en caso contrario
      */
@@ -132,10 +155,10 @@ public class ProductoService {
 
     /**
      * Modifica el stock de un producto.
-     * 
-     * @param id ID del producto
+     *
+     * @param id      ID del producto
      * @param cantidad Cantidad a sumar o restar del stock (puede ser negativa)
-     * @throws ResourceNotFoundException si el producto no existe
+     * @throws ResourceNotFoundException  si el producto no existe
      * @throws StockInsufficientException si el stock resultante es negativo
      */
     public void modifyStock(Long id, int cantidad) {
@@ -151,7 +174,7 @@ public class ProductoService {
 
     /**
      * Encuentra todos los productos de una compañía específica.
-     * 
+     *
      * @param companiaId ID de la compañía
      * @return Lista de ProductoResponseDTO de los productos de la compañía
      * @throws ValidationException si el ID de la compañía es nulo
@@ -167,7 +190,7 @@ public class ProductoService {
 
     /**
      * Encuentra todos los productos de una categoría específica.
-     * 
+     *
      * @param categoriaId ID de la categoría
      * @return Lista de ProductoResponseDTO de los productos de la categoría
      * @throws ValidationException si el ID de la categoría es nulo
@@ -183,8 +206,8 @@ public class ProductoService {
 
     /**
      * Encuentra productos que pertenecen a una compañía y categoría específicas.
-     * 
-     * @param companiaId ID de la compañía
+     *
+     * @param companiaId  ID de la compañía
      * @param categoriaId ID de la categoría
      * @return Lista de ProductoResponseDTO filtrados
      */
@@ -196,7 +219,7 @@ public class ProductoService {
 
     /**
      * Busca productos por coincidencia parcial en el número de artículo.
-     * 
+     *
      * @param articulo Término de búsqueda (insensible a mayúsculas/minúsculas)
      * @return Lista de ProductoResponseDTO que coinciden con el término
      * @throws ValidationException si el término de búsqueda es nulo o vacío
@@ -212,7 +235,7 @@ public class ProductoService {
 
     /**
      * Encuentra productos con al menos la cantidad de stock especificada.
-     * 
+     *
      * @param stock Cantidad mínima de stock
      * @return Lista de ProductoResponseDTO con stock >= cantidad especificada
      * @throws ValidationException si el stock es negativo
@@ -228,7 +251,7 @@ public class ProductoService {
 
     /**
      * Encuentra productos dentro de un rango de precios.
-     * 
+     *
      * @param minPrecio Precio mínimo (inclusive)
      * @param maxPrecio Precio máximo (inclusive)
      * @return Lista de ProductoResponseDTO dentro del rango de precios
@@ -248,7 +271,7 @@ public class ProductoService {
 
     /**
      * Obtiene el número total de productos disponibles.
-     * 
+     *
      * @return Cantidad total de productos
      */
     public long countTotal() {
@@ -257,7 +280,7 @@ public class ProductoService {
 
     /**
      * Obtiene el stock total de todos los productos.
-     * 
+     *
      * @return Suma total del stock de todos los productos
      */
     public int getTotalStock() {
@@ -266,7 +289,7 @@ public class ProductoService {
 
     /**
      * Obtiene los productos agotados (stock = 0).
-     * 
+     *
      * @return Lista de ProductoResponseDTO sin stock
      */
     public List<ProductoResponseDTO> findOutOfStockProducts() {
@@ -276,8 +299,9 @@ public class ProductoService {
     }
 
     /**
-     * Convierte una entidad Producto a ProductoResponseDTO para no exponer atributos internos.
-     * 
+     * Convierte una entidad Producto a ProductoResponseDTO.
+     * No expone imagenPublicId ya que es un dato interno.
+     *
      * @param producto Entidad Producto
      * @return ProductoResponseDTO
      */
@@ -296,9 +320,9 @@ public class ProductoService {
 
     /**
      * Valida los datos de creación de un producto.
-     * 
+     *
      * @param dto ProductoCreateDTO con los datos a validar
-     * @throws ValidationException si alguna validación falla
+     * @throws ValidationException        si alguna validación falla
      * @throws DuplicateResourceException si el artículo ya existe
      */
     private void validate(ProductoCreateDTO dto) {
@@ -318,7 +342,7 @@ public class ProductoService {
 
     /**
      * Valida los datos de actualización de un producto.
-     * 
+     *
      * @param dto ProductoUpdateDTO con los datos a validar
      * @throws ValidationException si alguna validación falla
      */
@@ -333,5 +357,4 @@ public class ProductoService {
             throw new ValidationException("El artículo no puede estar vacío");
         }
     }
-
 }

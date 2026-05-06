@@ -1,15 +1,10 @@
 package com.store.api.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
 import java.util.List;
@@ -39,17 +34,46 @@ public class ProductoController {
         return ResponseEntity.ok(productoService.findById(id));
     }
 
-    @PostMapping
-    public ResponseEntity<ProductoResponseDTO> create(@Valid @RequestBody ProductoCreateDTO dto) {
-        ProductoResponseDTO creado = productoService.create(dto);
+    /**
+     * Crea un producto recibiendo los datos como JSON en la parte "datos"
+     * y la imagen como archivo en la parte "imagen" (opcional).
+     *
+     * Ejemplo con curl:
+     *   curl -X POST /api/productos \
+     *     -F "datos={\"articulo\":\"ABC\",\"precio\":100,...};type=application/json" \
+     *     -F "imagen=@foto.jpg"
+     */
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ProductoResponseDTO> create(
+            @RequestPart("datos") @Valid ProductoCreateDTO dto,
+            @RequestPart(value = "imagen", required = false) MultipartFile imagen) {
+
+        ProductoResponseDTO creado = productoService.create(dto, imagen);
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ProductoResponseDTO> update(@PathVariable Long id, @Valid @RequestBody ProductoUpdateDTO dto) {
-        return ResponseEntity.ok(productoService.update(id, dto));
+    /**
+     * Actualiza un producto recibiendo los datos como JSON en la parte "datos"
+     * y opcionalmente una nueva imagen en la parte "imagen".
+     * Si no se envía imagen, se conserva la imagen existente.
+     *
+     * Ejemplo con curl:
+     *   curl -X PUT /api/productos/1 \
+     *     -F "datos={\"articulo\":\"ABC\",\"precio\":200,...};type=application/json" \
+     *     -F "imagen=@nueva_foto.jpg"
+     */
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ProductoResponseDTO> update(
+            @PathVariable Long id,
+            @RequestPart("datos") @Valid ProductoUpdateDTO dto,
+            @RequestPart(value = "imagen", required = false) MultipartFile imagen) {
+
+        return ResponseEntity.ok(productoService.update(id, dto, imagen));
     }
 
+    /**
+     * Elimina un producto y su imagen asociada en Cloudinary.
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         productoService.delete(id);

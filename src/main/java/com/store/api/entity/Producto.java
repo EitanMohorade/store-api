@@ -4,58 +4,58 @@ import jakarta.persistence.*;
 
 /**
  * Entidad que representa un producto en el sistema.
- * 
+ *
  * Un producto es un artículo de inventario que pertenece a una categoría,
- * tiene asociado un stock, preio y precio unitario y pertenece a una compañía.
- * 
- * @param id Identificador único del producto
- * @param articulo Nombre o código del artículo
- * @param descripcion Descripción detallada del producto
- * @param precio Precio unitario del producto en unidades monetarias
- * @param categoria Categoría a la que pertenece el producto
- * @param stock Cantidad disponible en inventario
- * @param imagenUrl URL de la imagen del producto
- * @param compania Compañía propietaria del producto
+ * tiene asociado un stock, precio y precio unitario y pertenece a una compañía.
+ *
+ * @param id             Identificador único del producto
+ * @param articulo       Nombre o código del artículo
+ * @param descripcion    Descripción detallada del producto
+ * @param precio         Precio del producto en unidades monetarias
+ * @param categoria      Categoría a la que pertenece el producto
+ * @param stock          Cantidad disponible en inventario
+ * @param imagenUrl      URL pública de la imagen del producto (Cloudinary)
+ * @param imagenPublicId Public ID de la imagen en Cloudinary (para eliminación)
+ * @param compania       Compañía propietaria del producto
  * @param precioUnitario Precio cliente del producto
  */
 @Entity
 public class Producto {
 
-    /** Identificador único del producto. */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Nombre o código del artículo. */
     private String articulo;
-    
-    /** Descripción detallada del producto. */
+
     private String descripcion;
-    
-    /** Precio unitario del producto en unidades monetarias. */
+
     private int precio;
 
-    /** Precio cliente del producto. */
     private int precioUnitario;
 
-    /** Categoría a la que pertenece el producto. */
     @ManyToOne
     private Categoria categoria;
 
-    /** Stock del producto. */
     private int stock;
 
-    /** URL de la imagen del producto. */
+    /** URL pública de la imagen servida por Cloudinary. */
     private String imagenUrl;
 
-    /** Compañía propietaria del producto. */
+    /**
+     * Public ID de la imagen en Cloudinary.
+     * Se usa internamente para poder eliminar la imagen al actualizar o borrar el producto.
+     * No se expone en los DTOs de respuesta públicos.
+     */
+    private String imagenPublicId;
+
     @ManyToOne
     private Compania compania;
 
     public Producto() {}
 
     public Producto(Long id, String articulo, String descripcion, int precio, Categoria categoria,
-                    int stock, String imagenUrl, Compania compania, int precioUnitario) {
+                    int stock, String imagenUrl, String imagenPublicId, Compania compania, int precioUnitario) {
         this.id = id;
         this.articulo = articulo;
         this.descripcion = descripcion;
@@ -63,6 +63,7 @@ public class Producto {
         this.categoria = categoria;
         this.stock = stock;
         this.imagenUrl = imagenUrl;
+        this.imagenPublicId = imagenPublicId;
         this.compania = compania;
         this.precioUnitario = precioUnitario;
     }
@@ -90,6 +91,9 @@ public class Producto {
 
     public String getImagenUrl() { return imagenUrl; }
     public void setImagenUrl(String imagenUrl) { this.imagenUrl = imagenUrl; }
+
+    public String getImagenPublicId() { return imagenPublicId; }
+    public void setImagenPublicId(String imagenPublicId) { this.imagenPublicId = imagenPublicId; }
 
     public Compania getCompania() { return compania; }
     public void setCompania(Compania compania) { this.compania = compania; }
