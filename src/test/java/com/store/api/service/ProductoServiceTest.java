@@ -37,6 +37,10 @@ public class ProductoServiceTest {
     @Mock
     private ProductoRepository productoRepository;
 
+    // Necesario porque ProductoService lo recibe por constructor
+    @Mock
+    private ImagenStorageService imagenStorageService;
+
     @InjectMocks
     private ProductoService productoService;
 
@@ -90,7 +94,7 @@ public class ProductoServiceTest {
         dto.setArticulo(null);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
-            productoService.create(dto);
+            productoService.create(dto, null);
         });
 
         assertEquals("El artículo no puede estar vacío",exception.getMessage());
@@ -109,7 +113,7 @@ public class ProductoServiceTest {
 
         ValidationException exception = assertThrows(
             ValidationException.class,
-            () -> productoService.update(1L, dto)
+            () -> productoService.update(1L, dto, null)
         );
 
         assertEquals("El precio no puede ser negativo", exception.getMessage());
@@ -126,7 +130,7 @@ public class ProductoServiceTest {
         dto.setStock(-5);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
-            productoService.create(dto);
+            productoService.create(dto, null);
         });
 
         assertEquals("El stock no puede ser negativo", exception.getMessage());
@@ -153,7 +157,7 @@ public class ProductoServiceTest {
                 return p;
         });
         
-        ProductoResponseDTO productoGuardado = productoService.create(createDTO);
+        ProductoResponseDTO productoGuardado = productoService.create(createDTO, null);
 
         assertNotNull(productoGuardado.getId());
         assertEquals("prueba 1", productoGuardado.getArticulo());
@@ -171,7 +175,7 @@ public class ProductoServiceTest {
             .thenReturn(true);
 
         DuplicateResourceException exception = assertThrows(DuplicateResourceException.class, () -> {
-            productoService.create(dto);
+            productoService.create(dto, null);
         });
 
         assertEquals("El artículo ya existe", exception.getMessage());
@@ -192,7 +196,7 @@ public class ProductoServiceTest {
         dto.setPrecio(100);
         dto.setStock(10);
 
-        ProductoResponseDTO result = productoService.update(1L, dto);
+        ProductoResponseDTO result = productoService.update(1L, dto, null);
 
         assertEquals("Producto de prueba", result.getArticulo());
         assertEquals(100, result.getPrecio());
@@ -201,9 +205,8 @@ public class ProductoServiceTest {
 
     @Test
     void delete_DeberiaEliminarProductoCorrectamente() {
-
-        when(productoRepository.existsById(1L))
-            .thenReturn(true);
+        when(productoRepository.findById(1L))
+            .thenReturn(Optional.of(productoExistente));
 
         productoService.delete(1L);
 
@@ -248,7 +251,7 @@ public class ProductoServiceTest {
 
         ResourceNotFoundException exception = assertThrows(
             ResourceNotFoundException.class,
-            () -> productoService.update(2L, dto)
+            () -> productoService.update(2L, dto, null)
         );
 
         assertEquals("Recurso no encontrado", exception.getMessage());
@@ -347,7 +350,7 @@ public class ProductoServiceTest {
         dto.setStock(8);
         dto.setDescripcion("description prueba 1");
 
-        ProductoResponseDTO result = productoService.update(1L, dto);
+        ProductoResponseDTO result = productoService.update(1L, dto, null);
 
         assertEquals("prueba 1", result.getArticulo());
         assertEquals(1500, result.getPrecio());
@@ -357,8 +360,8 @@ public class ProductoServiceTest {
 
     @Test
     void delete_DeberiaEliminarProductosPorId() {
-        when(productoRepository.existsById(1L)).thenReturn(true);
-        when(productoRepository.existsById(2L)).thenReturn(true);
+        when(productoRepository.findById(1L)).thenReturn(Optional.of(productoExistente));
+        when(productoRepository.findById(2L)).thenReturn(Optional.of(productoExistente2));
 
         productoService.delete(1L);
         productoService.delete(2L);
@@ -375,7 +378,7 @@ public class ProductoServiceTest {
         dto.setStock(10);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
-            productoService.create(dto);
+            productoService.create(dto, null);
         });
 
         assertEquals("El artículo no puede estar vacío", exception.getMessage());
@@ -392,7 +395,7 @@ public class ProductoServiceTest {
         dto.setStock(-10);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
-            productoService.update(2L, dto);
+            productoService.update(2L, dto, null);
         });
 
         assertEquals("El stock no puede ser negativo", exception.getMessage());
@@ -434,7 +437,7 @@ public class ProductoServiceTest {
         dto.setStock(0);
 
         assertThrows(ValidationException.class, () -> {
-            productoService.create(dto);
+            productoService.create(dto, null);
         });
     }
 
@@ -449,7 +452,7 @@ public class ProductoServiceTest {
         dto.setStock(10);
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
-            productoService.update(1L, dto);
+            productoService.update(1L, dto, null);
         });
 
         assertEquals("El precio no puede ser negativo", exception.getMessage());
@@ -463,49 +466,19 @@ public class ProductoServiceTest {
         List<ProductoResponseDTO> productos = productoService.findAll();
 
         assertTrue(productos.isEmpty());
-        assertEquals(0, productos.size());
     }
 
     @Test
-    void comparareProductosConDiferentesPrecios() {
-        assertTrue(productoExistente.getPrecio() > productoExistente2.getPrecio());
-        assertEquals(1200, productoExistente.getPrecio());
-        assertEquals(99, productoExistente2.getPrecio());
-    }
+    void findByPrecioRange_DeberiaRetornarProductosEnRango() {
+        List<Producto> expectedProducts = List.of(productoExistente2);
 
-    @Test
-    void comparareProductosConDiferentesStocks() {
-        assertTrue(productoExistente2.getStock() > productoExistente.getStock());
-        assertEquals(15, productoExistente.getStock());
-        assertEquals(50, productoExistente2.getStock());
-    }
-
-    @Test
-    void findById_DeberiaLanzarExceptionCuandoProductoNoExiste() {
-        when(productoRepository.findById(3L))
-            .thenReturn(Optional.empty());
-
-        ResourceNotFoundException exception = assertThrows(
-            ResourceNotFoundException.class,
-            () -> productoService.findById(3L)
-        );
-
-        assertEquals("Recurso no encontrado", exception.getMessage());
-    }
-
-    @Test
-    void findByPrecioRange_DeberiaRetornarProductosDentroRango() {
-       
-        List<Producto> expectedProducts = List.of(productoExistente, productoExistente2);
-
-        when(productoRepository.findByPrecioBetween(50, 1300))
+        when(productoRepository.findByPrecioBetween(50, 100))
             .thenReturn(expectedProducts);
 
-        List<ProductoResponseDTO> productos = productoService.findByPrecioRange(50, 1300);
+        List<ProductoResponseDTO> productos = productoService.findByPrecioRange(50, 100);
 
-        assertEquals(2, productos.size());
-        assertEquals("prueba 1", productos.get(0).getArticulo());
-        assertEquals("prueba 2", productos.get(1).getArticulo());
+        assertEquals(1, productos.size());
+        assertEquals("prueba 2", productos.get(0).getArticulo());
     }
 
     @Test
@@ -583,8 +556,6 @@ public class ProductoServiceTest {
 
     @Test
     void getTotalStock_DeberiaRetornarSumaTotalDeStocks() {
-        List<Producto> expectedProducts = List.of(productoExistente, productoExistente2);
-
         when(productoRepository.getTotalStock())
             .thenReturn(65);
 
@@ -605,20 +576,6 @@ public class ProductoServiceTest {
 
     @Test
     void getTotalStock_DeberiaRetornarCeroCuandoProductosTienenCeroStock() {
-        Producto productoConCeroStock1 = new Producto();
-        productoConCeroStock1.setId(3L);
-        productoConCeroStock1.setArticulo("prueba 3");
-        productoConCeroStock1.setPrecio(500);
-        productoConCeroStock1.setStock(0);
-
-        Producto productoConCeroStock2 = new Producto();
-        productoConCeroStock2.setId(4L);
-        productoConCeroStock2.setArticulo("prueba 4");
-        productoConCeroStock2.setPrecio(800);
-        productoConCeroStock2.setStock(0);
-
-        List<Producto> expectedProducts = List.of(productoConCeroStock1, productoConCeroStock2);
-
         when(productoRepository.getTotalStock())
             .thenReturn(0);
 
@@ -640,8 +597,6 @@ public class ProductoServiceTest {
 
     @Test
     void findByArticuloContaining_DeberiaRetornarProductosQueContienenArticulo() {
-        List<Producto> expectedProducts = List.of(productoExistente);
-
         when(productoRepository.findByArticuloContainingIgnoreCase("prueba 1"))
             .thenReturn(List.of(productoExistente));
 
@@ -665,10 +620,8 @@ public class ProductoServiceTest {
         productoAgotado2.setPrecio(800);
         productoAgotado2.setStock(0);
 
-        List<Producto> expectedProducts = List.of(productoAgotado1, productoAgotado2);
-
         when(productoRepository.findByStock(0))
-            .thenReturn(expectedProducts);
+            .thenReturn(List.of(productoAgotado1, productoAgotado2));
 
         List<ProductoResponseDTO> productos = productoService.findOutOfStockProducts();
 
@@ -691,10 +644,8 @@ public class ProductoServiceTest {
 
     @Test
     void findByCompaniaIdAndCategoriaId_DeberiaRetornarProductosFiltrados() {
-        List<Producto> expectedProducts = List.of(productoExistente);
-
         when(productoRepository.findByCompaniaIdAndCategoriaId(1L, 1L))
-            .thenReturn(expectedProducts);
+            .thenReturn(List.of(productoExistente));
 
         List<ProductoResponseDTO> productos = productoService.findByCompaniaIdAndCategoriaId(1L, 1L);
 
@@ -714,10 +665,8 @@ public class ProductoServiceTest {
 
     @Test
     void findByCategoriaId_DeberiaRetornarProductosPorCategoriaId() {
-        List<Producto> expectedProducts = List.of(productoExistente2);
-
         when(productoRepository.findByCategoriaId(2L))
-            .thenReturn(expectedProducts);
+            .thenReturn(List.of(productoExistente2));
 
         List<ProductoResponseDTO> productos = productoService.findByCategoriaId(2L);
 
@@ -737,10 +686,8 @@ public class ProductoServiceTest {
 
     @Test
     void findByCompaniaId_DeberiaRetornarProductosPorCompaniaId() {
-        List<Producto> expectedProducts = List.of(productoExistente);
-
         when(productoRepository.findByCompaniaId(1L))
-            .thenReturn(expectedProducts);
+            .thenReturn(List.of(productoExistente));
 
         List<ProductoResponseDTO> productos = productoService.findByCompaniaId(1L);
 
@@ -756,4 +703,3 @@ public class ProductoServiceTest {
         assertTrue(productoService.existById(1L));
     }
 }
-

@@ -8,17 +8,9 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Suite de tests unitarios para la entidad Venta.
- * 
- * Valida la construcción, getters, setters y comportamiento general de la clase Venta,
- * incluyendo inicialización con y sin parámetros, y manipulación de atributos.
- * Además, funcionalidades específicas como el cálculo de totales y la inicialización automática de la fecha.
- * 
  */
 public class VentaTest {
     
-    /**
-     * Verifica que se pueda crear una instancia de Producto con el constructor vacío.
-     */
     @Test
     public void testConstructorVacio() {
         Venta venta = new Venta();
@@ -26,9 +18,6 @@ public class VentaTest {
         assertNotNull(venta, "La instancia no debe ser nula");
     }
 
-    /**
-     * Verifica que el constructor con parámetros inicialice correctamente todos los atributos.
-     */
     @Test
     public void testConstructorConParametros() {
         Long id = 1L;
@@ -38,10 +27,11 @@ public class VentaTest {
         Categoria categoria = new Categoria(1L, "Mochila", "Productos de mochila");
         int stock = 10;
         String imagenUrl = "http://ejemplo.com/imagen.jpg";
+        String imagenPublicId = null; // campo agregado para Cloudinary
         Compania compania = new Compania(1L, "GC");
         int precioUnitario = 150;
 
-        Venta venta = new Venta(null, new Producto(id, articulo, descripcion, precio, categoria, stock, imagenUrl, compania, precioUnitario), 5);
+        Venta venta = new Venta(null, new Producto(id, articulo, descripcion, precio, categoria, stock, imagenUrl, imagenPublicId, compania, precioUnitario), 5);
 
         assertEquals(5, venta.getCantidad(), "La cantidad debe coincidir");
         assertEquals(articulo, venta.getProducto().getArticulo(), "El artículo del producto debe coincidir");
@@ -54,9 +44,6 @@ public class VentaTest {
         assertEquals(precioUnitario, venta.getProducto().getPrecioUnitario(), "El precio unitario del producto debe coincidir");
     }
 
-    /**
-     * Verifica que los setters y getters funcionan correctamente para todos los atributos.
-     */
     @Test
     public void testSettersYGetters() {
 
@@ -73,7 +60,6 @@ public class VentaTest {
         assertEquals(producto, venta.getProducto(), "El producto debe actualizarse");
         assertEquals(cantidad, venta.getCantidad(), "La cantidad debe actualizarse");
         assertEquals(id, venta.getId(), "El ID debe actualizarse");
-
     }
     
     @Test

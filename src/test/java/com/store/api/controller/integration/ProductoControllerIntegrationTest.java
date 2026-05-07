@@ -6,11 +6,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.List;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockPart;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -41,7 +43,7 @@ public class ProductoControllerIntegrationTest {
 
         mockMvc.perform(get("/api/productos"))
                 .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -51,7 +53,7 @@ public class ProductoControllerIntegrationTest {
 
         mockMvc.perform(get("/api/productos"))
                 .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -60,7 +62,7 @@ public class ProductoControllerIntegrationTest {
 
         mockMvc.perform(get("/api/productos"))
                 .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -70,7 +72,7 @@ public class ProductoControllerIntegrationTest {
 
         mockMvc.perform(get("/api/productos/{id}", 1L))
                 .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -80,7 +82,7 @@ public class ProductoControllerIntegrationTest {
 
         mockMvc.perform(get("/api/productos/{id}", 1L))
                 .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -89,128 +91,138 @@ public class ProductoControllerIntegrationTest {
 
         mockMvc.perform(get("/api/productos/{id}", 1L))
                 .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-        }
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+    }
 
-        @Test
-        @WithMockUser(roles = "ADMIN")
-        void GET_findById_noEncontrado_deberiaRetornar404() throws Exception {
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void GET_findById_noEncontrado_deberiaRetornar404() throws Exception {
         when(productoService.findById(999L)).thenThrow(new ResourceNotFoundException("Producto no encontrado"));
 
         mockMvc.perform(get("/api/productos/{id}", 999L))
-            .andExpect(status().isNotFound());
-        }
+                .andExpect(status().isNotFound());
+    }
 
-        @Test
-        @WithMockUser(roles = "ADMIN")
-        void POST_create_admin_deberiaRetornar201() throws Exception {
-        when(productoService.create(org.mockito.ArgumentMatchers.any()))
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void POST_create_admin_deberiaRetornar201() throws Exception {
+        when(productoService.create(
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any()))
             .thenReturn(new ProductoResponseDTO(2L, "B", "desc", 2, 90, null, null, null));
 
-        String request = """
-            {
-              "articulo": "B",
-              "descripcion": "desc",
-              "stock": 2,
-              "precio": 90,
-              "precioUnitario": 45
-            }
-            """;
+        String body = """
+                {
+                  "articulo": "B",
+                  "descripcion": "desc",
+                  "stock": 2,
+                  "precio": 90,
+                  "precioUnitario": 45
+                }
+                """;
 
-        mockMvc.perform(post("/api/productos")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(request))
-            .andExpect(status().isCreated())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-        }
+        MockPart datosPart = new MockPart("datos", body.getBytes());
+        datosPart.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
-        @Test
-        @WithMockUser(roles = "USER")
-        void POST_create_user_deberiaRetornar403() throws Exception {
-        String request = """
-            {
-              "articulo": "B",
-              "stock": 2,
-              "precio": 90,
-              "precioUnitario": 45
-            }
-            """;
+        mockMvc.perform(multipart("/api/productos").part(datosPart))
+                .andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+    }
 
-        mockMvc.perform(post("/api/productos")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(request))
-            .andExpect(status().isForbidden());
-        }
+    @Test
+    @WithMockUser(roles = "USER")
+    void POST_create_user_deberiaRetornar403() throws Exception {
+        String body = """
+                {
+                  "articulo": "B",
+                  "stock": 2,
+                  "precio": 90,
+                  "precioUnitario": 45
+                }
+                """;
 
-        @Test
-        void POST_create_sinAutenticacion_deberiaRetornar401() throws Exception {
-        String request = """
-            {
-              "articulo": "B",
-              "stock": 2,
-              "precio": 90,
-              "precioUnitario": 45
-            }
-            """;
+        MockPart datosPart = new MockPart("datos", body.getBytes());
+        datosPart.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
-        mockMvc.perform(post("/api/productos")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(request))
-            .andExpect(status().isUnauthorized());
-        }
+        mockMvc.perform(multipart("/api/productos").part(datosPart))
+                .andExpect(status().isForbidden());
+    }
 
-        @Test
-        @WithMockUser(roles = "ADMIN")
-        void PUT_update_admin_deberiaRetornar200() throws Exception {
-        when(productoService.update(org.mockito.ArgumentMatchers.eq(1L), org.mockito.ArgumentMatchers.any()))
+    @Test
+    void POST_create_sinAutenticacion_deberiaRetornar401() throws Exception {
+        String body = """
+                {
+                  "articulo": "B",
+                  "stock": 2,
+                  "precio": 90,
+                  "precioUnitario": 45
+                }
+                """;
+
+        MockPart datosPart = new MockPart("datos", body.getBytes());
+        datosPart.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(multipart("/api/productos").part(datosPart))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void PUT_update_admin_deberiaRetornar200() throws Exception {
+        when(productoService.update(
+                org.mockito.ArgumentMatchers.eq(1L),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any()))
             .thenReturn(new ProductoResponseDTO(1L, "A", "edit", 5, 120, null, null, null));
 
-        String request = """
-            {
-              "articulo": "A",
-              "descripcion": "edit",
-              "stock": 5,
-              "precio": 120,
-              "precioUnitario": 60
-            }
-            """;
+        String body = """
+                {
+                  "articulo": "A",
+                  "descripcion": "edit",
+                  "stock": 5,
+                  "precio": 120,
+                  "precioUnitario": 60
+                }
+                """;
 
-        mockMvc.perform(put("/api/productos/{id}", 1L)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(request))
-            .andExpect(status().isOk());
-        }
+        MockPart datosPart = new MockPart("datos", body.getBytes());
+        datosPart.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
-        @Test
-        @WithMockUser(roles = "USER")
-        void PUT_update_user_deberiaRetornar403() throws Exception {
-        String request = """
-            {
-              "articulo": "A",
-              "descripcion": "edit",
-              "stock": 5,
-              "precio": 120,
-              "precioUnitario": 60
-            }
-            """;
+        mockMvc.perform(multipart(HttpMethod.PUT, "/api/productos/{id}", 1L).part(datosPart))
+                .andExpect(status().isOk());
+    }
 
-        mockMvc.perform(put("/api/productos/{id}", 1L)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(request))
-            .andExpect(status().isForbidden());
-        }
+    @Test
+    @WithMockUser(roles = "USER")
+    void PUT_update_user_deberiaRetornar403() throws Exception {
+        String body = """
+                {
+                  "articulo": "A",
+                  "descripcion": "edit",
+                  "stock": 5,
+                  "precio": 120,
+                  "precioUnitario": 60
+                }
+                """;
 
-        @Test
-        @WithMockUser(roles = "ADMIN")
-        void DELETE_delete_admin_deberiaRetornar204() throws Exception {
+        MockPart datosPart = new MockPart("datos", body.getBytes());
+        datosPart.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(multipart(HttpMethod.PUT, "/api/productos/{id}", 1L).part(datosPart))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void DELETE_delete_admin_deberiaRetornar204() throws Exception {
         mockMvc.perform(delete("/api/productos/{id}", 1L))
-            .andExpect(status().isNoContent());
-        }
+                .andExpect(status().isNoContent());
+    }
 
-        @Test
-        @WithMockUser(roles = "USER")
-        void DELETE_delete_user_deberiaRetornar403() throws Exception {
+    @Test
+    @WithMockUser(roles = "USER")
+    void DELETE_delete_user_deberiaRetornar403() throws Exception {
         mockMvc.perform(delete("/api/productos/{id}", 1L))
-            .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden());
     }
 }
