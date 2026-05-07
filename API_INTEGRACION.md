@@ -384,6 +384,39 @@ Respuesta tipo venta:
 
 ---
 
+### 4.6 Configuración de la tienda (`/api/configuracion`)
+
+GET público. PUT requiere ADMIN.
+
+**GET /api/configuracion** — Obtiene la configuración actual de la tienda. `200 OK`
+
+No requiere autenticación ni body. Respuesta:
+```json
+{
+  "nombre": "Mi Tienda",
+  "direccion": "Av. Corrientes 1234, CABA",
+  "tagline": "Productos frescos, precios justos",
+  "descripcion": "Describí tu tienda en pocas palabras..."
+}
+```
+
+Si nunca fue configurada, devuelve los valores por defecto con nombre: `"Mi Tienda"` y el resto en `null`.
+
+**PUT /api/configuracion** — Actualiza la configuración. `200 OK`
+
+```json
+{
+  "nombre": "Mi Tienda",
+  "direccion": "Av. Corrientes 1234, CABA",
+  "tagline": "Productos frescos, precios justos",
+  "descripcion": "Describí tu tienda en pocas palabras..."
+}
+```
+
+Devuelve el mismo objeto con los valores actualizados. Solo `nombre` es obligatorio; el resto es opcional.
+
+---
+
 ## 5) Formato estándar de errores
 
 ```json
@@ -480,3 +513,4 @@ kill <PID>
 - Al eliminar un producto, su imagen en Cloudinary también se elimina automáticamente.
 - `imagenUrl` en la respuesta es una URL pública de Cloudinary, usable directamente en el frontend (`<img src="...">` o similar).
 - El endpoint de creación de admin requiere rol ADMIN; en el primer despliegue se usa el admin semilla configurado en `AdminSeedConfig`.
+-La configuración de la tienda (nombre, direccion, tagline, descripcion) ya no se guarda en localStorage. Usar GET /api/configuracion para leer los valores al montar el componente y PUT /api/configuracion para guardar cambios.
