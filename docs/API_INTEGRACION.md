@@ -314,7 +314,7 @@ await axios.post("http://localhost:8080/api/productos", formData, {
 {
   "id": 20,
   "articulo": "AR-1001",
-  "descripcion": "Leche entera 1L",
+  "descripcion": "bolso re lindo",
   "stock": 100,
   "precio": 1200,
   "categoria": {
@@ -368,7 +368,7 @@ Respuesta tipo venta:
   "producto": {
     "id": 20,
     "articulo": "AR-1001",
-    "descripcion": "Leche entera 1L",
+    "descripcion": "bolso re lindo",
     "stock": 98,
     "precio": 1200,
     "precioUnitario": 1500

@@ -16,36 +16,6 @@ mvn spring-boot:run
 
 Puerto por defecto: `8080` (configurable en `application.properties`).
 
-## Arquitectura
-
-```
-src/main/java/com/store/api/
-├── StoreApiApplication.java
-├── config/
-│   ├── AdminSeedConfig.java       → Inicialización de datos
-│   └── SecurityConfig.java        → Configuración de seguridad HTTP Basic
-├── controller/
-│   ├── AdminController.java
-│   ├── CategoriaController.java
-│   ├── CompaniaController.java
-│   ├── ProductoController.java
-│   └── VentaController.java
-├── service/                       → Lógica de negocio y validaciones
-├── repository/                    → Persistencia con JPA
-├── entity/
-│   ├── Admin.java
-│   ├── Categoria.java
-│   ├── Compania.java
-│   ├── Producto.java
-│   └── Venta.java
-├── dto/                           → DTOs de entrada/salida por dominio
-│   ├── admin/
-│   ├── categoria/
-│   ├── compania/
-│   ├── producto/
-│   └── venta/
-└── exception/                     → Excepciones y manejo global
-```
 
 ### Flujo de solicitud
 ```
@@ -107,7 +77,24 @@ La seguridad se configura en `SecurityConfig` con HTTP Basic.
 - `PUT /api/admins/{id}` (ADMIN)
 - `DELETE /api/admins/{id}` (ADMIN)
 
-## Notas
 
-- Los controladores operan con DTOs (`Create`, `Update`, `Response`) para evitar exponer entidades directamente.
-- Se incluyen tests unitarios e integración en `src/test`.
+## Estructura del proyecto
+
+Estructura principal del código dentro de `src/main/java/com/store/api`:
+
+```
+src/main/java/com/store/api/
+├── StoreApiApplication.java
+├── config/                         → Configuraciones y semillas
+├── controller/                     → Controladores REST por dominio
+├── service/                        → Lógica de negocio y validaciones
+├── repository/                     → Persistencia con JPA
+├── entity/                         → Entidades JPA
+├── dto/                            → DTOs de entrada/salida
+└── exception/                      → Excepciones y manejo global
+```
+
+## Carpeta de documentación
+
+Para documentación del proyecto: `docs/`.
+
