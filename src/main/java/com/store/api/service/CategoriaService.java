@@ -10,6 +10,7 @@ import com.store.api.exception.DuplicateResourceException;
 import com.store.api.exception.ResourceNotFoundException;
 import com.store.api.exception.ValidationException;
 import com.store.api.repository.CategoriaRepository;
+import com.store.api.repository.ProductoRepository;
 
 import java.util.List;
 
@@ -23,10 +24,14 @@ import java.util.List;
 public class CategoriaService {
     
     private final CategoriaRepository categoriaRepository;
+    private final ProductoRepository productoRepository;
 
-    public CategoriaService(CategoriaRepository categoriaRepository) {
+    public CategoriaService(CategoriaRepository categoriaRepository,
+                            ProductoRepository productoRepository) {
         this.categoriaRepository = categoriaRepository;
+        this.productoRepository = productoRepository;
     }
+
 
     /**
      * Crea una nueva categoría desde el DTO de creación y devuelve el DTO de respuesta.
@@ -44,14 +49,20 @@ public class CategoriaService {
     }
 
     /**
-     * Elimina una categoría por su ID.
+     * Elimina una categoría por su ID, siempre que no tenga productos asociados.
      *
      * @param id ID de la categoría a eliminar
      * @throws ResourceNotFoundException si la categoría no existe
+     * @throws ValidationException si la categoría tiene productos asociados
      */
     public void delete(Long id) {
         if (!categoriaRepository.existsById(id)) {
             throw new ResourceNotFoundException();
+        }
+        if (productoRepository.existsByCategoriaId(id)) {
+            throw new ValidationException(
+                "No se puede eliminar la categoría porque tiene productos asociados"
+            );
         }
         categoriaRepository.deleteById(id);
     }

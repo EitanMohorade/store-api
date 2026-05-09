@@ -16,14 +16,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.http.MediaType;
 
-import com.store.api.dto.categoria.CategoriaResponseDTO;
 import com.store.api.exception.ResourceNotFoundException;
 import com.store.api.exception.ValidationException;
-import com.store.api.service.CategoriaService;
 
 import com.store.api.dto.compania.CompaniaResponseDTO;
 import com.store.api.service.CompaniaService;

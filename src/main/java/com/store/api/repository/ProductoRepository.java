@@ -76,5 +76,8 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     @Query("SELECT COALESCE(SUM(p.stock), 0) FROM Producto p")
     int getTotalStock();
 
+    boolean existsByCompaniaId(Long companiaId);
+    boolean existsByCategoriaId(Long categoriaId);
+
 }
 

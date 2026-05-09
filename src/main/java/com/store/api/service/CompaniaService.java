@@ -11,6 +11,7 @@ import com.store.api.entity.Compania;
 import com.store.api.exception.ResourceNotFoundException;
 import com.store.api.exception.ValidationException;
 import com.store.api.repository.CompaniaRepository;
+import com.store.api.repository.ProductoRepository;
 
 /**
  * Servicio de negocio para la entidad Compañía.
@@ -23,9 +24,12 @@ import com.store.api.repository.CompaniaRepository;
 public class CompaniaService {
 
     private final CompaniaRepository companiaRepository;
+    private final ProductoRepository productoRepository;
 
-    public CompaniaService(CompaniaRepository companiaRepository) {
+    public CompaniaService(CompaniaRepository companiaRepository,
+                        ProductoRepository productoRepository) {
         this.companiaRepository = companiaRepository;
+        this.productoRepository = productoRepository;
     }
 
     /**
@@ -43,14 +47,20 @@ public class CompaniaService {
     }
 
     /**
-     * Elimina una compañía por su ID.
+     * Elimina una compañía por su ID, siempre que no tenga productos asociados.
      * 
      * @param id ID de la compañía a eliminar
      * @throws ResourceNotFoundException si la compañía no existe
+     * @throws ValidationException si la compañía tiene productos asociados
      */
     public void delete(Long id) {
         if (!companiaRepository.existsById(id)) {
             throw new ResourceNotFoundException();
+        }
+        if (productoRepository.existsByCompaniaId(id)) {
+            throw new ValidationException(
+                "No se puede eliminar la compañía porque tiene productos asociados"
+            );
         }
         companiaRepository.deleteById(id);
     }

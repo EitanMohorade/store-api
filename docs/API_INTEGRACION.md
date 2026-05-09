@@ -127,6 +127,14 @@ GET públicos por configuración actual. POST/PUT/DELETE requieren ADMIN.
 
 **DELETE /api/categorias/{id}** — Elimina categoría. `204 No Content`
 
+```json
+{
+  "status": 400,
+  "code": "VALIDATION_ERROR",
+  "message": "No se puede eliminar la categoría porque tiene productos asociados"
+}
+```
+
 Respuesta tipo categoría:
 ```json
 {
@@ -157,6 +165,14 @@ GET públicos por configuración actual. POST/PUT/DELETE requieren ADMIN.
 ```
 
 **DELETE /api/companias/{id}** — Elimina compañía. `204 No Content`
+
+```json
+{
+  "status": 400,
+  "code": "VALIDATION_ERROR",
+  "message": "No se puede eliminar la compañía porque tiene productos asociados"
+}
+```
 
 Respuesta tipo compañía:
 ```json
